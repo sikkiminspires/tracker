@@ -1,0 +1,2126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sikkim INSPIRES Programme Tracker</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background-color: #f9fafb;
+            line-height: 1.5;
+            color: #374151;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 1rem;
+        }
+        
+        .header {
+            background: white;
+            border-radius: 0.5rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            border: 1px solid #e5e7eb;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+        
+        .header h1 {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #111827;
+        }
+        
+        .header p {
+            color: #6b7280;
+            margin-top: 0.25rem;
+        }
+        
+        .btn {
+            background: #2563eb;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 0.375rem;
+            cursor: pointer;
+            font-size: 0.875rem;
+            transition: background-color 0.2s;
+        }
+        
+        .btn:hover {
+            background: #1d4ed8;
+        }
+        
+        .btn-secondary {
+            background: #6b7280;
+        }
+        
+        .btn-secondary:hover {
+            background: #4b5563;
+        }
+        
+        .btn-danger {
+            background: #dc2626;
+        }
+        
+        .btn-danger:hover {
+            background: #b91c1c;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+        
+        .stat-card {
+            padding: 1rem;
+            border-radius: 0.5rem;
+            border: 1px solid;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .stat-total { background: #dbeafe; border-color: #bfdbfe; color: #1e40af; }
+        .stat-overdue { background: #fef2f2; border-color: #fecaca; color: #b91c1c; }
+        .stat-urgent { background: #fff7ed; border-color: #fed7aa; color: #c2410c; }
+        .stat-completed { background: #f0fdf4; border-color: #bbf7d0; color: #16a34a; }
+        
+        .stat-number {
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+        
+        .filters {
+            background: white;
+            border-radius: 0.5rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            border: 1px solid #e5e7eb;
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .filters-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+        
+        .search-box {
+            position: relative;
+        }
+        
+        .search-input {
+            width: 100%;
+            padding: 0.5rem 0.5rem 0.5rem 2.5rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.375rem;
+            font-size: 0.875rem;
+        }
+        
+        .search-icon {
+            position: absolute;
+            left: 0.75rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #9ca3af;
+            width: 1rem;
+            height: 1rem;
+        }
+        
+        select, input {
+            width: 100%;
+            padding: 0.5rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.375rem;
+            font-size: 0.875rem;
+        }
+        
+        .table-container {
+            background: white;
+            border-radius: 0.5rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            border: 1px solid #e5e7eb;
+            overflow: hidden;
+        }
+        
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        .table th {
+            background: #f9fafb;
+            padding: 0.75rem 1rem;
+            text-align: left;
+            font-weight: 500;
+            font-size: 0.875rem;
+            color: #111827;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        
+        .table td {
+            padding: 1rem;
+            border-bottom: 1px solid #e5e7eb;
+            font-size: 0.875rem;
+            vertical-align: top;
+        }
+        
+        .table tr:hover {
+            background: #f9fafb;
+        }
+        
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.25rem 0.625rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            border: 1px solid;
+        }
+        
+        .badge-dept {
+            background: #dbeafe;
+            color: #1e40af;
+            border-color: #bfdbfe;
+        }
+        
+        .badge-overdue {
+            background: #fef2f2;
+            color: #b91c1c;
+            border-color: #fecaca;
+        }
+        
+        .badge-urgent {
+            background: #fff7ed;
+            color: #c2410c;
+            border-color: #fed7aa;
+        }
+        
+        .badge-high {
+            background: #fefce8;
+            color: #a16207;
+            border-color: #fde047;
+        }
+        
+        .badge-medium {
+            background: #dbeafe;
+            color: #1e40af;
+            border-color: #bfdbfe;
+        }
+        
+        .badge-low {
+            background: #f3f4f6;
+            color: #374151;
+            border-color: #d1d5db;
+        }
+        
+        .actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+        
+        .btn-sm {
+            padding: 0.25rem 0.5rem;
+            font-size: 0.75rem;
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            padding: 1rem;
+        }
+        
+        .modal.show {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .modal-content {
+            background: white;
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            width: 100%;
+            max-width: 42rem;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+        
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+        
+        .form-group label {
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: #374151;
+        }
+        
+        textarea {
+            resize: vertical;
+            min-height: 4rem;
+        }
+        
+        .btn-group {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+        
+        .btn-group .btn {
+            flex: 1;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 2rem;
+            color: #6b7280;
+        }
+        
+        .text-xs {
+            font-size: 0.75rem;
+        }
+        
+        .text-red {
+            color: #dc2626;
+        }
+        
+        .text-orange {
+            color: #ea580c;
+        }
+        
+        .text-green {
+            color: #16a34a;
+        }
+        
+        .text-gray {
+            color: #6b7280;
+        }
+        
+        .text-blue {
+            color: #2563eb;
+        }
+        
+        .font-medium {
+            font-weight: 500;
+        }
+        
+        .mt-1 {
+            margin-top: 0.25rem;
+        }
+        
+        .hidden {
+            display: none !important;
+        }
+        
+        .user-info {
+            background: #1f2937;
+            color: white;
+            padding: 0.5rem 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.875rem;
+        }
+        
+        .user-role {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .role-badge {
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+        
+        .role-admin {
+            background: #10b981;
+            color: white;
+        }
+        
+        .role-operator {
+            background: #f59e0b;
+            color: white;
+        }
+        
+        .role-viewer {
+            background: #6b7280;
+            color: white;
+        }
+        
+        .login-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+        }
+        
+        .login-card {
+            background: white;
+            border-radius: 0.5rem;
+            padding: 2rem;
+            width: 100%;
+            max-width: 450px;
+            text-align: center;
+        }
+        
+        .login-form {
+            text-align: left;
+            margin-top: 1.5rem;
+        }
+        
+        .form-field {
+            margin-bottom: 1rem;
+        }
+        
+        .form-field label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: #374151;
+        }
+        
+        .form-field input, .form-field select {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.375rem;
+            font-size: 0.875rem;
+        }
+        
+        .form-field input:focus, .form-field select:focus {
+            outline: none;
+            border-color: #2563eb;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+        
+        .access-info {
+            background: #f3f4f6;
+            border-radius: 0.375rem;
+            padding: 1rem;
+            margin: 1rem 0;
+            font-size: 0.875rem;
+            text-align: left;
+        }
+        
+        .access-info h4 {
+            margin: 0 0 0.5rem 0;
+            color: #374151;
+        }
+        
+        .settings-dropdown {
+            position: relative;
+            display: inline-block;
+        }
+        
+        .settings-menu {
+            position: absolute;
+            right: 0;
+            top: 100%;
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.375rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 0.5rem 0;
+            min-width: 180px;
+            z-index: 1000;
+            display: none;
+        }
+        
+        .settings-menu.show {
+            display: block;
+        }
+        
+        .settings-menu button {
+            width: 100%;
+            text-align: left;
+            padding: 0.5rem 1rem;
+            border: none;
+            background: none;
+            cursor: pointer;
+            font-size: 0.875rem;
+            color: #374151;
+        }
+        
+        .settings-menu button:hover {
+            background: #f9fafb;
+        }
+        
+        .error-message {
+            color: #dc2626;
+            font-size: 0.875rem;
+            margin-top: 0.5rem;
+            padding: 0.5rem;
+            background: #fef2f2;
+            border-radius: 0.25rem;
+            display: none;
+        }
+        
+        .success-message {
+            color: #16a34a;
+            font-size: 0.875rem;
+            margin-top: 0.5rem;
+            padding: 0.5rem;
+            background: #f0fdf4;
+            border-radius: 0.25rem;
+            display: none;
+        }
+        
+        .password-strength {
+            margin-top: 0.5rem;
+            font-size: 0.75rem;
+        }
+        
+        .strength-weak { color: #dc2626; }
+        .strength-medium { color: #f59e0b; }
+        .strength-strong { color: #16a34a; }
+        
+        .permission-warning {
+            background: #fef3c7;
+            color: #92400e;
+            padding: 0.5rem;
+            border-radius: 0.25rem;
+            font-size: 0.875rem;
+            margin: 0.5rem 0;
+            display: none;
+        }
+        
+        .main-nav {
+            background: white;
+            border-bottom: 1px solid #e5e7eb;
+            padding: 0;
+        }
+        
+        .nav-tabs {
+            display: flex;
+            gap: 0;
+            border-bottom: none;
+        }
+        
+        .nav-tab {
+            padding: 1rem 1.5rem;
+            border: none;
+            background: none;
+            cursor: pointer;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: #6b7280;
+            border-bottom: 2px solid transparent;
+            transition: all 0.2s;
+        }
+        
+        .nav-tab:hover {
+            color: #374151;
+            background: #f9fafb;
+        }
+        
+        .nav-tab.active {
+            color: #2563eb;
+            border-bottom-color: #2563eb;
+            background: white;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .task-trail {
+            background: #f8fafc;
+            border-radius: 0.375rem;
+            padding: 0.75rem;
+            margin-top: 0.5rem;
+            border-left: 3px solid #2563eb;
+        }
+        
+        .trail-entry {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        
+        .trail-entry:last-child {
+            border-bottom: none;
+        }
+        
+        .trail-content {
+            flex: 1;
+        }
+        
+        .trail-date {
+            color: #64748b;
+            font-size: 0.75rem;
+            white-space: nowrap;
+            margin-left: 1rem;
+        }
+        
+        .trail-action {
+            font-size: 0.875rem;
+            color: #334155;
+        }
+        
+        .trail-user {
+            font-size: 0.75rem;
+            color: #64748b;
+            font-style: italic;
+        }
+        
+        .trail-toggle {
+            color: #2563eb;
+            cursor: pointer;
+            font-size: 0.75rem;
+            text-decoration: underline;
+            margin-top: 0.25rem;
+        }
+        
+        .meeting-card {
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+        
+        .meeting-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        
+        .meeting-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: #111827;
+        }
+        
+        .meeting-date {
+            color: #6b7280;
+            font-size: 0.875rem;
+        }
+        
+        .meeting-section {
+            margin-bottom: 1rem;
+        }
+        
+        .meeting-section h4 {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 0.5rem;
+        }
+        
+        .meeting-section p {
+            font-size: 0.875rem;
+            color: #6b7280;
+            line-height: 1.5;
+        }
+        
+        .linked-tasks {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+        }
+        
+        .task-link {
+            background: #dbeafe;
+            color: #1e40af;
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
+            font-size: 0.75rem;
+            text-decoration: none;
+            border: 1px solid #bfdbfe;
+        }
+        
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .table-container {
+                overflow-x: auto;
+            }
+            
+            .modal {
+                padding: 0.5rem;
+            }
+            
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .user-info {
+                flex-direction: column;
+                gap: 0.5rem;
+                align-items: stretch;
+            }
+            
+            .nav-tabs {
+                flex-wrap: wrap;
+            }
+            
+            .nav-tab {
+                padding: 0.75rem 1rem;
+                font-size: 0.8rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Login Overlay -->
+    <div class="login-overlay" id="loginOverlay">
+        <div class="login-card">
+            <h2>Sikkim INSPIRES Access Control</h2>
+            <p>Please enter your credentials to access the system</p>
+            
+            <div class="access-info">
+                <h4>Access Information:</h4>
+                <div>Please contact your system administrator for login credentials.</div>
+            </div>
+            
+            <div class="login-form">
+                <div class="form-field">
+                    <label for="loginUsername">Username</label>
+                    <input type="text" id="loginUsername" placeholder="Enter your username">
+                </div>
+                
+                <div class="form-field">
+                    <label for="loginPassword">Password</label>
+                    <input type="password" id="loginPassword" placeholder="Enter password">
+                </div>
+                
+                <div class="error-message" id="loginError"></div>
+                
+                <button class="btn" onclick="login()" id="loginBtn" style="width: 100%; margin-top: 1rem;">
+                    Login
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Change Password Modal -->
+    <div class="modal" id="changePasswordModal">
+        <div class="modal-content">
+            <h2>Change Password</h2>
+            <div class="form-field">
+                <label for="currentPassword">Current Password</label>
+                <input type="password" id="currentPassword" placeholder="Enter current password">
+            </div>
+            <div class="form-field">
+                <label for="newPassword">New Password</label>
+                <input type="password" id="newPassword" placeholder="Enter new password" oninput="checkPasswordStrength()">
+                <div class="password-strength" id="passwordStrength"></div>
+            </div>
+            <div class="form-field">
+                <label for="confirmPassword">Confirm New Password</label>
+                <input type="password" id="confirmPassword" placeholder="Confirm new password">
+            </div>
+            <div class="error-message" id="passwordError"></div>
+            <div class="success-message" id="passwordSuccess"></div>
+            <div class="btn-group">
+                <button class="btn" onclick="changePassword()">Change Password</button>
+                <button class="btn btn-secondary" onclick="hideChangePasswordModal()">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- User Info Bar -->
+    <div class="user-info">
+        <div class="user-role">
+            <span>Current User:</span>
+            <span class="role-badge" id="userRoleBadge">System Administrator</span>
+            <span id="userName">Admin User</span>
+        </div>
+        <div class="settings-dropdown">
+            <button class="btn btn-sm btn-secondary" onclick="toggleSettingsMenu()">
+                ⚙️ Settings ▼
+            </button>
+            <div class="settings-menu" id="settingsMenu">
+                <button onclick="showChangePasswordModal()">🔒 Change Password</button>
+                <button onclick="logout()">🚪 Logout</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Navigation Tabs -->
+    <div class="main-nav">
+        <div class="nav-tabs">
+            <button class="nav-tab active" onclick="switchTab('tasks')">📋 Tasks Management</button>
+            <button class="nav-tab" onclick="switchTab('meetings')">📝 Meeting Minutes</button>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <div class="header-content">
+                <div>
+                    <h1>Sikkim INSPIRES</h1>
+                    <p>Programme Activity Tracker</p>
+                </div>
+                <div>
+                    <div class="permission-warning" id="permissionWarning">
+                        ⚠️ You don't have permission to perform this action
+                    </div>
+                    <button class="btn" onclick="showAddTaskModal()" id="addTaskBtn">
+                        <span>➕</span> Add New Task
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Stats Cards -->
+            <div class="stats-grid">
+                <div class="stat-card stat-total">
+                    <div>
+                        <div class="text-xs">Total Tasks</div>
+                        <div class="stat-number" id="totalTasks">34</div>
+                    </div>
+                </div>
+                <div class="stat-card stat-overdue">
+                    <div>
+                        <div class="text-xs">Overdue</div>
+                        <div class="stat-number" id="overdueTasks">0</div>
+                    </div>
+                </div>
+                <div class="stat-card stat-urgent">
+                    <div>
+                        <div class="text-xs">Urgent</div>
+                        <div class="stat-number" id="urgentTasks">0</div>
+                    </div>
+                </div>
+                <div class="stat-card stat-completed">
+                    <div>
+                        <div class="text-xs">Completed</div>
+                        <div class="stat-number" id="completedTasks">0</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filters -->
+        <div class="filters">
+            <div class="filters-grid">
+                <div class="search-box">
+                    <svg class="search-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                    </svg>
+                    <input type="text" class="search-input" placeholder="Search tasks..." id="searchInput" oninput="filterTasks()">
+                </div>
+                <select id="departmentFilter" onchange="filterTasks()">
+                    <option value="all">All Departments</option>
+                    <option value="C&ID">C&ID</option>
+                    <option value="DIT">DIT</option>
+                    <option value="RDD">RDD</option>
+                    <option value="SDD">SDD</option>
+                    <option value="T&CAD">T&CAD</option>
+                    <option value="WCDD">WCDD</option>
+                </select>
+                <select id="priorityFilter" onchange="filterTasks()">
+                    <option value="all">All Priorities</option>
+                    <option value="overdue">Overdue</option>
+                    <option value="urgent">Urgent</option>
+                    <option value="high">High</option>
+                    <option value="medium">Medium</option>
+                    <option value="low">Low</option>
+                </select>
+                <select id="sortBy" onchange="filterTasks()">
+                    <option value="deliveryDate">Sort by Delivery Date</option>
+                    <option value="department">Sort by Department</option>
+                    <option value="id">Sort by ID</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Tasks Table -->
+        <div class="table-container">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Department</th>
+                        <th>Status & Description</th>
+                        <th>Timeline</th>
+                        <th>Responsibility</th>
+                        <th>Progress Status</th>
+                        <th>Priority</th>
+                        <th>Pending With</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="tasksTableBody">
+                    <!-- Tasks will be populated here -->
+                </tbody>
+            </table>
+            <div id="emptyState" class="empty-state" style="display: none;">
+                No tasks found matching your criteria.
+            </div>
+        </div>
+    </div>
+
+    <!-- Task Modal -->
+    <div class="modal" id="taskModal">
+        <div class="modal-content">
+            <h2 id="modalTitle">Add New Task</h2>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="taskDepartment">Department</label>
+                    <select id="taskDepartment">
+                        <option value="">Select Department</option>
+                        <option value="C&ID">C&ID</option>
+                        <option value="DIT">DIT</option>
+                        <option value="RDD">RDD</option>
+                        <option value="SDD">SDD</option>
+                        <option value="T&CAD">T&CAD</option>
+                        <option value="WCDD">WCDD</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="taskFrom">From</label>
+                    <input type="text" id="taskFrom">
+                </div>
+                <div class="form-group">
+                    <label for="taskTo">To</label>
+                    <input type="text" id="taskTo">
+                </div>
+                <div class="form-group">
+                    <label for="taskStartDate">Start Date</label>
+                    <input type="date" id="taskStartDate">
+                </div>
+                <div class="form-group">
+                    <label for="taskDeliveryDate">Delivery Date</label>
+                    <input type="date" id="taskDeliveryDate">
+                </div>
+                <div class="form-group">
+                    <label for="taskPriority">Priority</label>
+                    <select id="taskPriority">
+                        <option value="auto">Auto (Based on Delivery Date)</option>
+                        <option value="low">Low</option>
+                        <option value="medium">Medium</option>
+                        <option value="high">High</option>
+                        <option value="urgent">Urgent</option>
+                        <option value="overdue">Overdue</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="taskPendingWith">Pending With</label>
+                    <input type="text" id="taskPendingWith" placeholder="Who is this task pending with?">
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="taskStatus">Status Description</label>
+                <textarea id="taskStatus" rows="3"></textarea>
+            </div>
+            <div class="form-group">
+                <label for="taskRemarks">Remarks</label>
+                <input type="text" id="taskRemarks">
+            </div>
+            <div class="form-group">
+                <label for="taskProgress">Progress Details</label>
+                <textarea id="taskProgress" rows="2"></textarea>
+            </div>
+            <div class="form-group">
+                <label for="taskProgressDate">Progress Date</label>
+                <input type="date" id="taskProgressDate">
+            </div>
+            <div class="form-group">
+                <label for="taskNextStep">Next Step</label>
+                <input type="text" id="taskNextStep">
+            </div>
+            <div class="btn-group">
+                <button class="btn" onclick="saveTask()">Save Task</button>
+                <button class="btn btn-secondary" onclick="hideModal()">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // User Database with Password Authentication
+        let userDatabase = {
+            admin: {
+                password: 'admin123',
+                role: 'admin',
+                name: 'System Administrator',
+                lastLogin: null
+            },
+            operator: {
+                password: 'op123',
+                role: 'operator', 
+                name: 'Data Entry Operator',
+                lastLogin: null
+            },
+            viewer: {
+                password: 'view123',
+                role: 'viewer',
+                name: 'Viewer',
+                lastLogin: null
+            }
+        };
+
+        // User Access Control System
+        let currentUser = {
+            username: null,
+            role: null,
+            name: '',
+            permissions: {}
+        };
+
+        const roleConfig = {
+            admin: {
+                name: 'System Administrator',
+                badge: 'role-admin',
+                permissions: {
+                    view: true,
+                    add: true,
+                    edit: true,
+                    delete: true,
+                    changePassword: true
+                }
+            },
+            operator: {
+                name: 'Data Entry Operator',
+                badge: 'role-operator',
+                permissions: {
+                    view: true,
+                    add: true,
+                    edit: false,
+                    delete: false,
+                    changePassword: true
+                }
+            },
+            viewer: {
+                name: 'Viewer',
+                badge: 'role-viewer',
+                permissions: {
+                    view: true,
+                    add: false,
+                    edit: false,
+                    delete: false,
+                    changePassword: true
+                }
+            }
+        };
+
+        // Initial data - all 34 tasks
+        let tasks = [
+            // C&ID Tasks (5)
+            {
+                id: 1,
+                department: "C&ID",
+                status: "Convergence discussion between EEPF and Innovation Hub completed and TSA has shared the Scope of Work for Lead Incubation Partner with PMU for review.",
+                remarks: "With PMU",
+                from: "PMU",
+                to: "C&ID",
+                startDate: "2025-08-06",
+                deliveryDate: "",
+                progressDetails: "",
+                progressDate: "",
+                priority: "auto",
+                pendingWith: "PMU",
+                nextStep: ""
+            },
+            {
+                id: 2,
+                department: "C&ID",
+                status: "File has been initiated for the establishment of Innovation Hub as a legal entity",
+                remarks: "Timeline and the stage at which it is there",
+                from: "",
+                to: "",
+                startDate: "2025-08-06",
+                deliveryDate: "",
+                progressDetails: "",
+                progressDate: "",
+                priority: "auto",
+                pendingWith: "Legal Department",
+                nextStep: ""
+            },
+            {
+                id: 3,
+                department: "C&ID",
+                status: "Need assessment of DIC personnel in terms of capacity building to be submitted to PMU by 15th Aug. 2 proposals have been received – one each from BIMTech and IIM Calcutta. One proposal expected to be received from IIM Ahmedabad within a week",
+                remarks: "Proposals from three educational institutions",
+                from: "C&ID",
+                to: "PMU",
+                startDate: "2025-08-06",
+                deliveryDate: "2025-08-15",
+                progressDetails: "",
+                progressDate: "",
+                priority: "auto",
+                pendingWith: "IIM Ahmedabad",
+                nextStep: ""
+            },
+            {
+                id: 4,
+                department: "C&ID",
+                status: "SYSS - TSA has conducted meeting with LDM for expedition of NPA data from banks. Department would share request to LDM in a day or 2 for the said data",
+                remarks: "Getting the data from banks has been an issue except the State Bank of Sikkim",
+                from: "C&ID",
+                to: "LDM",
+                startDate: "2025-08-06",
+                deliveryDate: "",
+                progressDetails: "",
+                progressDate: "",
+                priority: "auto",
+                pendingWith: "Banks",
+                nextStep: ""
+            },
+            {
+                id: 5,
+                department: "C&ID",
+                status: "Feedback from WB to C&ID has been sent on Interim report on Assessment Study on Efficiency and Effectiveness of SYSS 1.0",
+                remarks: "Was sent on 7th August 2025",
+                from: "PMU",
+                to: "TSA",
+                startDate: "2025-08-07",
+                deliveryDate: "",
+                progressDetails: "",
+                progressDate: "",
+                priority: "auto",
+                pendingWith: "TSA",
+                nextStep: ""
+            },
+            // DIT Tasks (8)
+            {
+                id: 6,
+                department: "DIT",
+                status: "Feasibility study report has been submitted and PMU has asked for an exclusive discussion on the same. TSA to share time of meeting either on 7th Aug or 11th Aug. The disclaimer in the report is not acceptable and some of the recommendations also seem not feasible which need to be discussed further in detail.",
+                remarks: "Need discussions",
+                from: "PMU",
+                to: "DIT",
+                startDate: "2025-08-06",
+                deliveryDate: "",
+                progressDetails: "Need confirmation on turnaround time from C&ID",
+                progressDate: "2025-08-06",
+                priority: "auto",
+                pendingWith: "TSA",
+                nextStep: "Write an email?"
+            },
+            {
+                id: 7,
+                department: "DIT",
+                status: "Proposals for DPR of State Data Centre – ongoing",
+                remarks: "Clarity needed in this point",
+                from: "",
+                to: "",
+                startDate: "2025-08-06",
+                deliveryDate: "",
+                progressDetails: "",
+                progressDate: "",
+                priority: "auto",
+                pendingWith: "DIT",
+                nextStep: ""
+            },
+            {
+                id: 8,
+                department: "DIT",
+                status: "Digital readiness training - Approval from HCM received and work order has been issued to the identified vendor. Vendor to share training plan in a week's time post which DIT would write letters to all departments for nominating personnel for training.",
+                remarks: "Training plan awaited, timelines to be fixed",
+                from: "Vendor",
+                to: "DIT",
+                startDate: "2025-08-06",
+                deliveryDate: "",
+                progressDetails: "",
+                progressDate: "",
+                priority: "auto",
+                pendingWith: "Vendor",
+                nextStep: ""
+            },
+            {
+                id: 9,
+                department: "DIT",
+                status: "DLR 6.2.2 - compliance document for achievement for DLR to be shared by 7th Aug",
+                remarks: "DLR 6.2.2 Secretary IT and PGC have approved the State Data Policy",
+                from: "TSA",
+                to: "PMU",
+                startDate: "2025-08-06",
+                deliveryDate: "2025-08-07",
+                progressDetails: "Submitted to IVA, IVA will verify 6.1.1 and 6.1.2 first before delving in to 6.2.2 as per email of Prof. Priya sent on 09/08/25",
+                progressDate: "2025-08-09",
+                priority: "overdue",
+                pendingWith: "IVA",
+                nextStep: "Followup with IVA"
+            },
+            {
+                id: 10,
+                department: "DIT",
+                status: "DLR 6.2.1 ITD has prepared the State Data Policy and compliance plan",
+                remarks: "with IVA for verification",
+                from: "PMU",
+                to: "IVA",
+                startDate: "2025-08-06",
+                deliveryDate: "",
+                progressDetails: "",
+                progressDate: "",
+                priority: "auto",
+                pendingWith: "IVA",
+                nextStep: ""
+            },
+            {
+                id: 11,
+                department: "DIT",
+                status: "IT Needs assessment: 2 RFPs would be prepared. One covering MIS, LMS (internal and external) and employment and entrepreneurship portal ; and the second one covering CBP, SYSS and AAMA scheme automation.",
+                remarks: "2 RFPs see task, Timelines",
+                from: "TSA",
+                to: "PMU",
+                startDate: "2025-08-06",
+                deliveryDate: "",
+                progressDetails: "",
+                progressDate: "",
+                priority: "auto",
+                pendingWith: "TSA",
+                nextStep: ""
+            },
+            {
+                id: 12,
+                department: "DIT",
+                status: "TSA would conduct consultations with all related departments by 17th Aug and prepare the draft ToRs by 23rd August",
+                remarks: "Consultation with departments by 17th August",
+                from: "TSA",
+                to: "PMU",
+                startDate: "2025-08-06",
+                deliveryDate: "2025-08-23",
+                progressDetails: "",
+                progressDate: "",
+                priority: "auto",
+                pendingWith: "TSA",
+                nextStep: ""
+            },
+            {
+                id: 13,
+                department: "DIT",
+                status: "TSA wishes to seek time from Ambrish during his visit to Gangtok in the week of 25th Aug to discuss the ToRs and further fine tune the same.",
+                remarks: "Discussions with Ambarish during Gangtok visit",
+                from: "TSA",
+                to: "World Bank",
+                startDate: "2025-08-06",
+                deliveryDate: "2025-08-25",
+                progressDetails: "",
+                progressDate: "",
+                priority: "auto",
+                pendingWith: "World Bank",
+                nextStep: ""
+            },
+            // RDD Tasks (5)
+            {
+                id: 14,
+                department: "RDD",
+                status: "On the IEIAP documents, the TSA has requested that the timeline maybe set for end of August tentatively for preparation of all 6 district plans.",
+                remarks: "All 6 district IEIAP plans",
+                from: "TSA",
+                to: "PMU",
+                startDate: "2025-08-06",
+                deliveryDate: "2025-08-31",
+                progressDetails: "",
+                progressDate: "",
+                priority: "auto",
+                pendingWith: "PMU",
+                nextStep: ""
+            },
+            {
+                id: 15,
+                department: "RDD",
+                status: "TNA of SIRD has been submitted to PMU for review",
+                remarks: "With PMU and WB",
+                from: "PMU",
+                to: "TSA",
+                startDate: "2025-08-06",
+                deliveryDate: "",
+                progressDetails: "",
+                progressDate: "",
+                priority: "auto",
+                pendingWith: "PMU & WB",
+                nextStep: ""
+            },
+            {
+                id: 16,
+                department: "RDD",
+                status: "District level consultation meeting planned on 11th Aug at Soreng, 12th Aug at Gyalshing and 13th Aug at Namchi",
+                remarks: "IEIAP consultation meetings",
+                from: "TSA",
+                to: "District Administration",
+                startDate: "2025-08-06",
+                deliveryDate: "",
+                progressDetails: "",
+                progressDate: "",
+                priority: "auto",
+                pendingWith: "District Administration",
+                nextStep: ""
+            },
+            {
+                id: 17,
+                department: "RDD",
+                status: "Appointment of one District project manager in each of the 6 districts for IEIAP implementation to be explored by PMU",
+                remarks: "Recruitment of District Project Manager for IEIAP",
+                from: "Check",
+                to: "",
+                startDate: "2025-08-06",
+                deliveryDate: "",
+                progressDetails: "",
+                progressDate: "",
+                priority: "auto",
+                pendingWith: "PMU",
+                nextStep: ""
+            },
+            {
+                id: 18,
+                department: "RDD",
+                status: "CBT plans to be incorporated into the IEIAP after review of the CBT strategy document. TSA has requested PMU for a JWG meeting for better clarity on the Tourism department related interventions.",
+                remarks: "JWM Meeting need to be conducted with the initiative of the PMU",
+                from: "PMU",
+                to: "Check",
+                startDate: "2025-08-06",
+                deliveryDate: "",
+                progressDetails: "",
+                progressDate: "",
+                priority: "auto",
+                pendingWith: "PMU",
+                nextStep: ""
+            },
+            // SDD Tasks (7)
+            {
+                id: 19,
+                department: "SDD",
+                status: "Draft 2- RFP for selection of agency to conduct Skill gap study (SGAS)",
+                remarks: "20/08/2025",
+                from: "TSA",
+                to: "PMU",
+                startDate: "2025-08-06",
+                deliveryDate: "2025-08-20",
+                progressDetails: "Feedback received from World Bank on 7th July, TSA was to share the report on August 20th working on the feedback",
+                progressDate: "2025-07-07",
+                priority: "auto",
+                pendingWith: "TSA-SDD",
+                nextStep: "Check and send a follow-up email to check with the TSA-SDD"
+            },
+            {
+                id: 20,
+                department: "SDD",
+                status: "First draft of the Guidelines for virtual and blended Career Counselling and Placement Support Services",
+                remarks: "Target date 15th September, share the work progress on 20th August",
+                from: "SDD",
+                to: "PMU",
+                startDate: "2025-08-06",
+                deliveryDate: "2025-08-20",
+                progressDetails: "",
+                progressDate: "",
+                priority: "auto",
+                pendingWith: "TSA-SDD",
+                nextStep: "Check and send a follow-up email to check with the TSA-SDD"
+            },
+            {
+                id: 21,
+                department: "SDD",
+                status: "Career counselling and placement support services – Guidelines to be shared with PMU by 15th Sept. Plan for achievement of DLR 4.2.1 has been shared by TSA with PMU. Achievement expected by mid March 2026",
+                remarks: "DLR 4.2.1Virtual and blended career counselling and placement support services launched by SICB/ Niyukti Kendra/ SDD. Guidelines sharing by 15th September, share work in progress by 20th August",
+                from: "SDD",
+                to: "PMU",
+                startDate: "2025-08-06",
+                deliveryDate: "2025-08-20",
+                progressDetails: "",
+                progressDate: "",
+                priority: "auto",
+                pendingWith: "SDD",
+                nextStep: ""
+            },
+            {
+                id: 22,
+                department: "SDD",
+                status: "Infrastructure needs assessment report of SICB and 5 livelihood schools",
+                remarks: "Followup after 20th October",
+                from: "SDD",
+                to: "PMU",
+                startDate: "2025-08-06",
+                deliveryDate: "2025-08-15",
+                progressDetails: "",
+                progressDate: "",
+                priority: "auto",
+                pendingWith: "SDD",
+                nextStep: ""
+            },
+            {
+                id: 23,
+                department: "SDD",
+                status: "Needs assessment and institutional strengthening plan of SDD, SICB and Niyukti Kendra – framework to be shared with PMU by 20th October",
+                remarks: "Framework on 20th August delivery on 20th October",
+                from: "SDD",
+                to: "PMU",
+                startDate: "2025-08-06",
+                deliveryDate: "2025-08-20",
+                progressDetails: "",
+                progressDate: "",
+                priority: "auto",
+                pendingWith: "SDD",
+                nextStep: ""
+            },
+            {
+                id: 24,
+                department: "SDD",
+                status: "First draft of Content Management System guidelines for SDD Website. Action by 20th August - Communicate with TSA- ITD regarding the CMS Share the requirement document",
+                remarks: "Followup after 20th August",
+                from: "TSA",
+                to: "PMU",
+                startDate: "2025-08-06",
+                deliveryDate: "2025-08-20",
+                progressDetails: "Did TSA SDD communicate the IT-related invention to TSA DIT?",
+                progressDate: "2025-08-06",
+                priority: "auto",
+                pendingWith: "TSA-SDD",
+                nextStep: "Check and send a follow-up email to check with the TSA-SDD"
+            },
+            {
+                id: 25,
+                department: "SDD",
+                status: "First draft of Sikkim International Migration and Mobility Scheme (SIMMS) document Communicate with TSA- ITD regarding the CMS",
+                remarks: "Check",
+                from: "TSA",
+                to: "PMU",
+                startDate: "2025-08-06",
+                deliveryDate: "2025-08-20",
+                progressDetails: "",
+                progressDate: "",
+                priority: "auto",
+                pendingWith: "TSA-SDD",
+                nextStep: "Check and send a follow-up email to check with the TSA-SDD"
+            },
+            // T&CAD Tasks (5)
+            {
+                id: 26,
+                department: "T&CAD",
+                status: "Strategy of training programs to be conducted by IHM and IHCAE to be prepared by TCAD specifically highlighting the outreach activities to attract youth and women to the training programs",
+                remarks: "Training strategy document needed from TCAD, Timeline",
+                from: "",
+                to: "",
+                startDate: "2025-08-06",
+                deliveryDate: "",
+                progressDetails: "",
+                progressDate: "",
+                priority: "auto",
+                pendingWith: "TCAD",
+                nextStep: ""
+            },
+            {
+                id: 27,
+                department: "T&CAD",
+                status: "IHCAE training calendar has been approved as informed by TCAD",
+                remarks: "Training Calendar to be sent by TCAD",
+                from: "",
+                to: "",
+                startDate: "2025-08-06",
+                deliveryDate: "",
+                progressDetails: "",
+                progressDate: "",
+                priority: "auto",
+                pendingWith: "TCAD",
+                nextStep: ""
+            },
+            {
+                id: 28,
+                department: "T&CAD",
+                status: "TCAD to support PMU in obtaining training data from IHM and IHCAE for 2 years before April 2024 as part of the baseline for PDO achievement",
+                remarks: "Obtaining data from IHM and IHCAE",
+                from: "",
+                to: "",
+                startDate: "2025-08-06",
+                deliveryDate: "",
+                progressDetails: "",
+                progressDate: "",
+                priority: "auto",
+                pendingWith: "IHM & IHCAE",
+                nextStep: ""
+            },
+            {
+                id: 29,
+                department: "T&CAD",
+                status: "Board of Governors meeting for IHM was held in April 2025 and IHCAE was held in July 2025. TCAD to share the Minutes of the Meetings with PMU",
+                remarks: "TCAD to share minutes of the meeting",
+                from: "",
+                to: "",
+                startDate: "2025-08-06",
+                deliveryDate: "",
+                progressDetails: "",
+                progressDate: "",
+                priority: "auto",
+                pendingWith: "TCAD",
+                nextStep: ""
+            },
+            {
+                id: 30,
+                department: "T&CAD",
+                status: "PMU to share the list of 7 identified ecotourism sites to be used by TCAD for developing CBT plans",
+                remarks: "List to be shared with TCAD",
+                from: "PMU",
+                to: "TCAD",
+                startDate: "2025-08-06",
+                deliveryDate: "",
+                progressDetails: "",
+                progressDate: "",
+                priority: "auto",
+                pendingWith: "PMU",
+                nextStep: ""
+            },
+            // WCDD Tasks (4)
+            {
+                id: 31,
+                department: "WCDD",
+                status: "It was agreed for the ICMS RFP floating deadline to be 15th September 2025 and the same would be mentioned in the Technical Note of the WB's 3rd ISM",
+                remarks: "To be noted in technical note of WB's 3rd ISM",
+                from: "",
+                to: "",
+                startDate: "2025-08-06",
+                deliveryDate: "2025-09-15",
+                progressDetails: "",
+                progressDate: "",
+                priority: "auto",
+                pendingWith: "World Bank",
+                nextStep: ""
+            },
+            {
+                id: 32,
+                department: "WCDD",
+                status: "WCDD has decided to avail the services of Martha Farrell Foundation for developing the training modules and has asked the Foundation to submit the proposal for the same.",
+                remarks: "Martha Farrell with submit a proposal to WCDD for developing the training modules",
+                from: "",
+                to: "",
+                startDate: "2025-08-06",
+                deliveryDate: "",
+                progressDetails: "",
+                progressDate: "",
+                priority: "auto",
+                pendingWith: "Martha Farrell Foundation",
+                nextStep: ""
+            },
+            {
+                id: 33,
+                department: "WCDD",
+                status: "Integration Plan - It has been decided to make it phase wise beginning with Children then adolescents and then women. PMU has shared an updated framework for children's integration plan with WCDD. On the plan of action there would be 2 levels of consultation - one FGD with the existing set of children in the CCIs and two a workshop with children who have already left the CCIs over the last 2 - 3 years. DCPOs would support in tracking them. Proposal from TISS received but it needs to be revised.",
+                remarks: "TISS proposal needs revision",
+                from: "",
+                to: "",
+                startDate: "2025-08-06",
+                deliveryDate: "",
+                progressDetails: "",
+                progressDate: "",
+                priority: "auto",
+                pendingWith: "TISS",
+                nextStep: ""
+            },
+            {
+                id: 34,
+                department: "WCDD",
+                status: "Partnership with UNICEF - discussions ongoing",
+                remarks: "",
+                from: "",
+                to: "",
+                startDate: "2025-08-14",
+                deliveryDate: "",
+                progressDetails: "",
+                progressDate: "",
+                priority: "auto",
+                pendingWith: "WCDD & UNICEF",
+                nextStep: ""
+            }
+        ];
+
+        let currentEditId = null;
+
+        // Password utilities
+        function validatePassword(password) {
+            const minLength = 6;
+            const hasUpper = /[A-Z]/.test(password);
+            const hasLower = /[a-z]/.test(password);
+            const hasNumber = /\d/.test(password);
+            
+            if (password.length < minLength) {
+                return { valid: false, message: 'Password must be at least 6 characters long' };
+            }
+            
+            let strength = 'weak';
+            let score = 0;
+            
+            if (password.length >= 8) score++;
+            if (hasUpper) score++;
+            if (hasLower) score++;
+            if (hasNumber) score++;
+            
+            if (score >= 3) strength = 'strong';
+            else if (score >= 2) strength = 'medium';
+            
+            return { valid: true, strength, score };
+        }
+
+        function checkPasswordStrength() {
+            const password = document.getElementById('newPassword').value;
+            const strengthDiv = document.getElementById('passwordStrength');
+            
+            if (!password) {
+                strengthDiv.innerHTML = '';
+                return;
+            }
+            
+            const validation = validatePassword(password);
+            
+            if (!validation.valid) {
+                strengthDiv.innerHTML = `<span class="strength-weak">${validation.message}</span>`;
+                return;
+            }
+            
+            const strengthClass = `strength-${validation.strength}`;
+            const strengthText = validation.strength.charAt(0).toUpperCase() + validation.strength.slice(1);
+            
+            strengthDiv.innerHTML = `<span class="${strengthClass}">Password strength: ${strengthText}</span>`;
+        }
+
+        // Authentication functions
+        function login() {
+            const username = document.getElementById('loginUsername').value.trim();
+            const password = document.getElementById('loginPassword').value;
+            
+            if (!username || !password) {
+                showError('loginError', 'Please enter both username and password');
+                return;
+            }
+            
+            const user = userDatabase[username];
+            if (!user || user.password !== password) {
+                showError('loginError', 'Invalid username or password');
+                return;
+            }
+            
+            // Successful login
+            currentUser.username = username;
+            currentUser.role = user.role;
+            currentUser.name = user.name;
+            currentUser.permissions = roleConfig[user.role].permissions;
+            
+            // Update last login
+            userDatabase[username].lastLogin = new Date().toISOString();
+            
+            // Update UI
+            updateUserInterface();
+            
+            // Hide login overlay
+            document.getElementById('loginOverlay').style.display = 'none';
+            
+            // Initialize the app
+            initializeApp();
+        }
+
+        function logout() {
+            if (confirm('Are you sure you want to logout?')) {
+                currentUser = { username: null, role: null, name: '', permissions: {} };
+                
+                // Reset login form
+                document.getElementById('loginUsername').value = '';
+                document.getElementById('loginPassword').value = '';
+                hideError('loginError');
+                
+                // Hide settings menu
+                hideSettingsMenu();
+                
+                // Show login overlay
+                document.getElementById('loginOverlay').style.display = 'flex';
+            }
+        }
+
+        // Settings menu functions
+        function toggleSettingsMenu() {
+            const menu = document.getElementById('settingsMenu');
+            menu.classList.toggle('show');
+        }
+
+        function hideSettingsMenu() {
+            document.getElementById('settingsMenu').classList.remove('show');
+        }
+
+        // Change password functions
+        function showChangePasswordModal() {
+            hideSettingsMenu();
+            document.getElementById('changePasswordModal').classList.add('show');
+            // Clear form
+            document.getElementById('currentPassword').value = '';
+            document.getElementById('newPassword').value = '';
+            document.getElementById('confirmPassword').value = '';
+            document.getElementById('passwordStrength').innerHTML = '';
+            hideError('passwordError');
+            hideSuccess('passwordSuccess');
+        }
+
+        function hideChangePasswordModal() {
+            document.getElementById('changePasswordModal').classList.remove('show');
+        }
+
+        function changePassword() {
+            const currentPassword = document.getElementById('currentPassword').value;
+            const newPassword = document.getElementById('newPassword').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            
+            // Validate current password
+            if (userDatabase[currentUser.username].password !== currentPassword) {
+                showError('passwordError', 'Current password is incorrect');
+                return;
+            }
+            
+            // Validate new password
+            const validation = validatePassword(newPassword);
+            if (!validation.valid) {
+                showError('passwordError', validation.message);
+                return;
+            }
+            
+            // Check password confirmation
+            if (newPassword !== confirmPassword) {
+                showError('passwordError', 'New passwords do not match');
+                return;
+            }
+            
+            // Check if new password is different
+            if (newPassword === currentPassword) {
+                showError('passwordError', 'New password must be different from current password');
+                return;
+            }
+            
+            // Update password
+            userDatabase[currentUser.username].password = newPassword;
+            
+            showSuccess('passwordSuccess', 'Password changed successfully!');
+            
+            // Clear form after 2 seconds and close modal
+            setTimeout(() => {
+                hideChangePasswordModal();
+            }, 2000);
+        }
+
+        // Utility functions for messages
+        function showError(elementId, message) {
+            const element = document.getElementById(elementId);
+            element.textContent = message;
+            element.style.display = 'block';
+        }
+
+        function hideError(elementId) {
+            const element = document.getElementById(elementId);
+            element.style.display = 'none';
+        }
+
+        function showSuccess(elementId, message) {
+            const element = document.getElementById(elementId);
+            element.textContent = message;
+            element.style.display = 'block';
+        }
+
+        function hideSuccess(elementId) {
+            const element = document.getElementById(elementId);
+            element.style.display = 'none';
+        }
+
+        // Permission Management Functions
+        function hasPermission(action) {
+            return currentUser.permissions && currentUser.permissions[action] === true;
+        }
+
+        function checkPermission(action) {
+            if (!hasPermission(action)) {
+                showPermissionWarning();
+                return false;
+            }
+            return true;
+        }
+
+        function showPermissionWarning() {
+            const warning = document.getElementById('permissionWarning');
+            warning.style.display = 'block';
+            setTimeout(() => {
+                warning.style.display = 'none';
+            }, 3000);
+        }
+
+        function updateUserInterface() {
+            // Update user info display
+            const roleBadge = document.getElementById('userRoleBadge');
+            const userName = document.getElementById('userName');
+            
+            roleBadge.textContent = roleConfig[currentUser.role].name;
+            roleBadge.className = `role-badge ${roleConfig[currentUser.role].badge}`;
+            userName.textContent = userDatabase[currentUser.username].name;
+            
+            // Update button visibility based on permissions
+            const addTaskBtn = document.getElementById('addTaskBtn');
+            
+            if (hasPermission('add')) {
+                addTaskBtn.classList.remove('hidden');
+            } else {
+                addTaskBtn.classList.add('hidden');
+            }
+            
+            // Update table rendering for action buttons
+            filterTasks();
+        }
+
+        function initializeApp() {
+            renderTasks();
+            updateStats();
+        }
+
+        // Utility functions
+        function getTaskPriority(task) {
+            // If priority is manually set (not "auto"), use that
+            if (task.priority && task.priority !== "auto") {
+                return task.priority;
+            }
+            
+            // Otherwise calculate based on delivery date
+            if (!task.deliveryDate) return 'low';
+            const today = new Date();
+            const delivery = new Date(task.deliveryDate);
+            const daysRemaining = Math.ceil((delivery - today) / (1000 * 60 * 60 * 24));
+            
+            if (daysRemaining < 0) return 'overdue';
+            if (daysRemaining <= 3) return 'urgent';
+            if (daysRemaining <= 7) return 'high';
+            return 'medium';
+        }
+
+        function getDaysRemaining(deliveryDate) {
+            if (!deliveryDate) return null;
+            const today = new Date();
+            const delivery = new Date(deliveryDate);
+            return Math.ceil((delivery - today) / (1000 * 60 * 60 * 24));
+        }
+
+        function formatDate(dateStr) {
+            if (!dateStr) return 'N/A';
+            return new Date(dateStr).toLocaleDateString();
+        }
+
+        function renderTasks(tasksToRender = tasks) {
+            const tbody = document.getElementById('tasksTableBody');
+            const emptyState = document.getElementById('emptyState');
+            
+            if (tasksToRender.length === 0) {
+                tbody.innerHTML = '';
+                emptyState.style.display = 'block';
+                return;
+            }
+            
+            emptyState.style.display = 'none';
+            
+            tbody.innerHTML = tasksToRender.map(task => {
+                const priority = getTaskPriority(task);
+                const daysRemaining = getDaysRemaining(task.deliveryDate);
+                
+                let timelineHtml = `<div class="text-xs text-gray">Start: ${formatDate(task.startDate)}</div>`;
+                if (task.deliveryDate) {
+                    timelineHtml += `<div class="text-xs">Due: ${formatDate(task.deliveryDate)}</div>`;
+                }
+                if (daysRemaining !== null) {
+                    const timeClass = daysRemaining < 0 ? 'text-red' : daysRemaining <= 3 ? 'text-orange' : 'text-green';
+                    const timeText = daysRemaining < 0 ? `${Math.abs(daysRemaining)} days overdue` : `${daysRemaining} days left`;
+                    timelineHtml += `<div class="text-xs font-medium ${timeClass}">${timeText}</div>`;
+                }
+                
+                let responsibilityHtml = '';
+                if (task.from) responsibilityHtml += `<div class="text-xs"><span class="text-gray">From:</span> ${task.from}</div>`;
+                if (task.to) responsibilityHtml += `<div class="text-xs"><span class="text-gray">To:</span> ${task.to}</div>`;
+                
+                let detailsHtml = `<div class="text-gray-900">${task.status}</div>`;
+                if (task.remarks) detailsHtml += `<div class="text-xs text-gray mt-1"><strong>Remarks:</strong> ${task.remarks}</div>`;
+                if (task.nextStep) detailsHtml += `<div class="text-xs text-green mt-1"><strong>Next Step:</strong> ${task.nextStep}</div>`;
+                
+                let progressHtml = '';
+                if (task.progressDetails) {
+                    progressHtml += `<div class="text-xs text-blue"><strong>Details:</strong> ${task.progressDetails}</div>`;
+                }
+                if (task.progressDate) {
+                    progressHtml += `<div class="text-xs text-gray mt-1"><strong>Updated:</strong> ${formatDate(task.progressDate)}</div>`;
+                }
+                if (!progressHtml) {
+                    progressHtml = '<div class="text-xs text-gray">No progress updates</div>';
+                }
+                
+                const priorityDisplay = task.priority === 'auto' ? 
+                    `${priority.charAt(0).toUpperCase() + priority.slice(1)} (Auto)` : 
+                    priority.charAt(0).toUpperCase() + priority.slice(1);
+                
+                // Generate action buttons based on permissions
+                let actionButtons = '';
+                if (hasPermission('edit')) {
+                    actionButtons += `<button class="btn btn-sm" onclick="editTask(${task.id})">✏️</button>`;
+                }
+                if (hasPermission('delete')) {
+                    actionButtons += `<button class="btn btn-danger btn-sm" onclick="deleteTask(${task.id})">🗑️</button>`;
+                }
+                if (!actionButtons) {
+                    actionButtons = '<span class="text-xs text-gray">No actions available</span>';
+                }
+                
+                let pendingWithHtml = '';
+                if (task.pendingWith) {
+                    pendingWithHtml = `<div class="text-xs"><span class="badge badge-dept">${task.pendingWith}</span></div>`;
+                } else {
+                    pendingWithHtml = '<div class="text-xs text-gray">Not specified</div>';
+                }
+                
+                return `
+                    <tr>
+                        <td>
+                            <span class="badge badge-dept">${task.department}</span>
+                        </td>
+                        <td>${detailsHtml}</td>
+                        <td>${timelineHtml}</td>
+                        <td>${responsibilityHtml}</td>
+                        <td>${progressHtml}</td>
+                        <td>
+                            <span class="badge badge-${priority}">
+                                ${priorityDisplay}
+                            </span>
+                        </td>
+                        <td>${pendingWithHtml}</td>
+                        <td>
+                            <div class="actions">
+                                ${actionButtons}
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function updateStats() {
+            const stats = {
+                total: tasks.length,
+                overdue: tasks.filter(t => getTaskPriority(t) === 'overdue').length,
+                urgent: tasks.filter(t => getTaskPriority(t) === 'urgent').length,
+                completed: tasks.filter(t => t.status.toLowerCase().includes('completed')).length
+            };
+            
+            document.getElementById('totalTasks').textContent = stats.total;
+            document.getElementById('overdueTasks').textContent = stats.overdue;
+            document.getElementById('urgentTasks').textContent = stats.urgent;
+            document.getElementById('completedTasks').textContent = stats.completed;
+        }
+
+        function filterTasks() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const departmentFilter = document.getElementById('departmentFilter').value;
+            const priorityFilter = document.getElementById('priorityFilter').value;
+            const sortBy = document.getElementById('sortBy').value;
+            
+            let filtered = tasks.filter(task => {
+                const matchesSearch = task.status.toLowerCase().includes(searchTerm) ||
+                                   task.department.toLowerCase().includes(searchTerm) ||
+                                   task.remarks.toLowerCase().includes(searchTerm) ||
+                                   (task.pendingWith && task.pendingWith.toLowerCase().includes(searchTerm));
+                const matchesDepartment = departmentFilter === 'all' || task.department === departmentFilter;
+                const matchesPriority = priorityFilter === 'all' || getTaskPriority(task) === priorityFilter;
+                
+                return matchesSearch && matchesDepartment && matchesPriority;
+            });
+
+            // Sort
+            filtered.sort((a, b) => {
+                if (sortBy === 'deliveryDate') {
+                    if (!a.deliveryDate && !b.deliveryDate) return 0;
+                    if (!a.deliveryDate) return 1;
+                    if (!b.deliveryDate) return -1;
+                    return new Date(a.deliveryDate) - new Date(b.deliveryDate);
+                }
+                if (sortBy === 'department') {
+                    return a.department.localeCompare(b.department);
+                }
+                return a.id - b.id;
+            });
+
+            renderTasks(filtered);
+        }
+
+        function showAddTaskModal() {
+            if (!checkPermission('add')) return;
+            
+            currentEditId = null;
+            document.getElementById('modalTitle').textContent = 'Add New Task';
+            clearForm();
+            document.getElementById('taskStartDate').value = new Date().toISOString().split('T')[0];
+            document.getElementById('taskPriority').value = 'auto';
+            document.getElementById('taskModal').classList.add('show');
+        }
+
+        function editTask(id) {
+            if (!checkPermission('edit')) return;
+            
+            const task = tasks.find(t => t.id === id);
+            if (!task) return;
+            
+            currentEditId = id;
+            document.getElementById('modalTitle').textContent = 'Edit Task';
+            
+            document.getElementById('taskDepartment').value = task.department;
+            document.getElementById('taskStatus').value = task.status;
+            document.getElementById('taskRemarks').value = task.remarks;
+            document.getElementById('taskFrom').value = task.from;
+            document.getElementById('taskTo').value = task.to;
+            document.getElementById('taskStartDate').value = task.startDate;
+            document.getElementById('taskDeliveryDate').value = task.deliveryDate;
+            document.getElementById('taskPriority').value = task.priority || 'auto';
+            document.getElementById('taskProgress').value = task.progressDetails;
+            document.getElementById('taskProgressDate').value = task.progressDate;
+            document.getElementById('taskPendingWith').value = task.pendingWith || '';
+            document.getElementById('taskNextStep').value = task.nextStep;
+            
+            document.getElementById('taskModal').classList.add('show');
+        }
+
+        function deleteTask(id) {
+            if (!checkPermission('delete')) return;
+            
+            if (confirm('Are you sure you want to delete this task?')) {
+                tasks = tasks.filter(t => t.id !== id);
+                filterTasks();
+                updateStats();
+            }
+        }
+
+        function saveTask() {
+            const isEditing = currentEditId !== null;
+            const requiredPermission = isEditing ? 'edit' : 'add';
+            
+            if (!checkPermission(requiredPermission)) return;
+            
+            const formData = {
+                department: document.getElementById('taskDepartment').value,
+                status: document.getElementById('taskStatus').value,
+                remarks: document.getElementById('taskRemarks').value,
+                from: document.getElementById('taskFrom').value,
+                to: document.getElementById('taskTo').value,
+                startDate: document.getElementById('taskStartDate').value,
+                deliveryDate: document.getElementById('taskDeliveryDate').value,
+                priority: document.getElementById('taskPriority').value,
+                progressDetails: document.getElementById('taskProgress').value,
+                progressDate: document.getElementById('taskProgressDate').value,
+                pendingWith: document.getElementById('taskPendingWith').value,
+                nextStep: document.getElementById('taskNextStep').value
+            };
+            
+            if (!formData.department || !formData.status || !formData.startDate) {
+                alert('Please fill in all required fields (Department, Status, Start Date)');
+                return;
+            }
+            
+            if (currentEditId) {
+                // Edit existing task
+                const taskIndex = tasks.findIndex(t => t.id === currentEditId);
+                tasks[taskIndex] = { ...tasks[taskIndex], ...formData };
+            } else {
+                // Add new task
+                const newTask = {
+                    ...formData,
+                    id: Math.max(...tasks.map(t => t.id), 0) + 1
+                };
+                tasks.push(newTask);
+            }
+            
+            hideModal();
+            filterTasks();
+            updateStats();
+        }
+
+        function hideModal() {
+            document.getElementById('taskModal').classList.remove('show');
+            clearForm();
+        }
+
+        function clearForm() {
+            document.getElementById('taskDepartment').value = '';
+            document.getElementById('taskStatus').value = '';
+            document.getElementById('taskRemarks').value = '';
+            document.getElementById('taskFrom').value = '';
+            document.getElementById('taskTo').value = '';
+            document.getElementById('taskStartDate').value = '';
+            document.getElementById('taskDeliveryDate').value = '';
+            document.getElementById('taskPriority').value = 'auto';
+            document.getElementById('taskProgress').value = '';
+            document.getElementById('taskProgressDate').value = '';
+            document.getElementById('taskPendingWith').value = '';
+            document.getElementById('taskNextStep').value = '';
+        }
+
+        // Close settings menu when clicking outside
+        document.addEventListener('click', function(e) {
+            const dropdown = document.querySelector('.settings-dropdown');
+            if (!dropdown.contains(e.target)) {
+                hideSettingsMenu();
+            }
+        });
+
+        // Close modals when clicking outside
+        document.getElementById('taskModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                hideModal();
+            }
+        });
+
+        document.getElementById('changePasswordModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                hideChangePasswordModal();
+            }
+        });
+
+        // Initialize application
+        document.addEventListener('DOMContentLoaded', function() {
+            // Start with login screen
+            document.getElementById('loginOverlay').style.display = 'flex';
+        });
+    </script>
+</body>
+</html>
