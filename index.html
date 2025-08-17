@@ -4,31 +4,32 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sikkim INSPIRES Programme Tracker</title>
-    <!-- Firebase and document generation libraries -->
-    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-firestore-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-storage-compat.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/docx/7.1.0/docx.min.js"></script>
-    <script src="https://cdn.sheetjs.com/xlsx-0.19.0/package/dist/xlsx.full.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/emailjs-com@3.2.0/dist/email.min.js"></script>
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <!-- SheetJS for Excel export -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
+        
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
             background-color: #f9fafb;
             line-height: 1.5;
             color: #374151;
         }
+        
         .container {
             max-width: 1400px;
             margin: 0 auto;
             padding: 1rem;
         }
+        
         .header {
             background: white;
             border-radius: 0.5rem;
@@ -37,6 +38,7 @@
             padding: 1.5rem;
             margin-bottom: 1.5rem;
         }
+        
         .header-content {
             display: flex;
             justify-content: space-between;
@@ -44,15 +46,18 @@
             flex-wrap: wrap;
             gap: 1rem;
         }
+        
         .header h1 {
             font-size: 2rem;
             font-weight: bold;
             color: #111827;
         }
+        
         .header p {
             color: #6b7280;
             margin-top: 0.25rem;
         }
+        
         .btn {
             background: #2563eb;
             color: white;
@@ -63,27 +68,42 @@
             font-size: 0.875rem;
             transition: background-color 0.2s;
         }
+        
         .btn:hover {
             background: #1d4ed8;
         }
+        
         .btn-secondary {
             background: #6b7280;
         }
+        
         .btn-secondary:hover {
             background: #4b5563;
         }
+        
         .btn-danger {
             background: #dc2626;
         }
+        
         .btn-danger:hover {
             background: #b91c1c;
         }
+        
+        .btn-success {
+            background: #16a34a;
+        }
+        
+        .btn-success:hover {
+            background: #15803d;
+        }
+        
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
             gap: 1rem;
             margin-top: 1.5rem;
         }
+        
         .stat-card {
             padding: 1rem;
             border-radius: 0.5rem;
@@ -92,14 +112,17 @@
             align-items: center;
             gap: 0.5rem;
         }
+        
         .stat-total { background: #dbeafe; border-color: #bfdbfe; color: #1e40af; }
         .stat-overdue { background: #fef2f2; border-color: #fecaca; color: #b91c1c; }
         .stat-urgent { background: #fff7ed; border-color: #fed7aa; color: #c2410c; }
         .stat-completed { background: #f0fdf4; border-color: #bbf7d0; color: #16a34a; }
+        
         .stat-number {
             font-size: 1.5rem;
             font-weight: bold;
         }
+        
         .filters {
             background: white;
             border-radius: 0.5rem;
@@ -108,14 +131,17 @@
             padding: 1rem;
             margin-bottom: 1.5rem;
         }
+        
         .filters-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
             gap: 1rem;
         }
+        
         .search-box {
             position: relative;
         }
+        
         .search-input {
             width: 100%;
             padding: 0.5rem 0.5rem 0.5rem 2.5rem;
@@ -123,6 +149,7 @@
             border-radius: 0.375rem;
             font-size: 0.875rem;
         }
+        
         .search-icon {
             position: absolute;
             left: 0.75rem;
@@ -132,6 +159,7 @@
             width: 1rem;
             height: 1rem;
         }
+        
         select, input {
             width: 100%;
             padding: 0.5rem;
@@ -139,6 +167,7 @@
             border-radius: 0.375rem;
             font-size: 0.875rem;
         }
+        
         .table-container {
             background: white;
             border-radius: 0.5rem;
@@ -146,10 +175,12 @@
             border: 1px solid #e5e7eb;
             overflow: hidden;
         }
+        
         .table {
             width: 100%;
             border-collapse: collapse;
         }
+        
         .table th {
             background: #f9fafb;
             padding: 0.75rem 1rem;
@@ -159,15 +190,18 @@
             color: #111827;
             border-bottom: 1px solid #e5e7eb;
         }
+        
         .table td {
             padding: 1rem;
             border-bottom: 1px solid #e5e7eb;
             font-size: 0.875rem;
             vertical-align: top;
         }
+        
         .table tr:hover {
             background: #f9fafb;
         }
+        
         .badge {
             display: inline-flex;
             align-items: center;
@@ -177,44 +211,53 @@
             font-weight: 500;
             border: 1px solid;
         }
+        
         .badge-dept {
             background: #dbeafe;
             color: #1e40af;
             border-color: #bfdbfe;
         }
+        
         .badge-overdue {
             background: #fef2f2;
             color: #b91c1c;
             border-color: #fecaca;
         }
+        
         .badge-urgent {
             background: #fff7ed;
             color: #c2410c;
             border-color: #fed7aa;
         }
+        
         .badge-high {
             background: #fefce8;
             color: #a16207;
             border-color: #fde047;
         }
+        
         .badge-medium {
             background: #dbeafe;
             color: #1e40af;
             border-color: #bfdbfe;
         }
+        
         .badge-low {
             background: #f3f4f6;
             color: #374151;
             border-color: #d1d5db;
         }
+        
         .actions {
             display: flex;
             gap: 0.5rem;
         }
+        
         .btn-sm {
             padding: 0.25rem 0.5rem;
             font-size: 0.75rem;
         }
+        
         .modal {
             display: none;
             position: fixed;
@@ -226,11 +269,13 @@
             z-index: 1000;
             padding: 1rem;
         }
+        
         .modal.show {
             display: flex;
             align-items: center;
             justify-content: center;
         }
+        
         .modal-content {
             background: white;
             border-radius: 0.5rem;
@@ -240,66 +285,83 @@
             max-height: 90vh;
             overflow-y: auto;
         }
+        
         .form-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
             gap: 1rem;
             margin-bottom: 1rem;
         }
+        
         .form-group {
             display: flex;
             flex-direction: column;
             gap: 0.25rem;
         }
+        
         .form-group label {
             font-size: 0.875rem;
             font-weight: 500;
             color: #374151;
         }
+        
         textarea {
             resize: vertical;
             min-height: 4rem;
         }
+        
         .btn-group {
             display: flex;
             gap: 0.5rem;
             margin-top: 1rem;
         }
+        
         .btn-group .btn {
             flex: 1;
         }
+        
         .empty-state {
             text-align: center;
             padding: 2rem;
             color: #6b7280;
         }
+        
         .text-xs {
             font-size: 0.75rem;
         }
+        
         .text-red {
             color: #dc2626;
         }
+        
         .text-orange {
             color: #ea580c;
         }
+        
         .text-green {
             color: #16a34a;
         }
+        
         .text-gray {
             color: #6b7280;
         }
+        
         .text-blue {
             color: #2563eb;
         }
+        
         .font-medium {
             font-weight: 500;
         }
+        
         .mt-1 {
             margin-top: 0.25rem;
         }
+        
         .hidden {
             display: none !important;
         }
+        
         .user-info {
             background: #1f2937;
             color: white;
@@ -309,29 +371,35 @@
             align-items: center;
             font-size: 0.875rem;
         }
+        
         .user-role {
             display: flex;
             align-items: center;
             gap: 0.5rem;
         }
+        
         .role-badge {
             padding: 0.25rem 0.5rem;
             border-radius: 0.25rem;
             font-size: 0.75rem;
             font-weight: 500;
         }
+        
         .role-admin {
             background: #10b981;
             color: white;
         }
+        
         .role-operator {
             background: #f59e0b;
             color: white;
         }
+        
         .role-viewer {
             background: #6b7280;
             color: white;
         }
+        
         .login-overlay {
             position: fixed;
             top: 0;
@@ -344,6 +412,7 @@
             justify-content: center;
             z-index: 2000;
         }
+        
         .login-card {
             background: white;
             border-radius: 0.5rem;
@@ -352,19 +421,23 @@
             max-width: 450px;
             text-align: center;
         }
+        
         .login-form {
             text-align: left;
             margin-top: 1.5rem;
         }
+        
         .form-field {
             margin-bottom: 1rem;
         }
+        
         .form-field label {
             display: block;
             margin-bottom: 0.5rem;
             font-weight: 500;
             color: #374151;
         }
+        
         .form-field input, .form-field select {
             width: 100%;
             padding: 0.75rem;
@@ -372,11 +445,13 @@
             border-radius: 0.375rem;
             font-size: 0.875rem;
         }
+        
         .form-field input:focus, .form-field select:focus {
             outline: none;
             border-color: #2563eb;
             box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
         }
+        
         .access-info {
             background: #f3f4f6;
             border-radius: 0.375rem;
@@ -385,14 +460,17 @@
             font-size: 0.875rem;
             text-align: left;
         }
+        
         .access-info h4 {
             margin: 0 0 0.5rem 0;
             color: #374151;
         }
+        
         .settings-dropdown {
             position: relative;
             display: inline-block;
         }
+        
         .settings-menu {
             position: absolute;
             right: 0;
@@ -406,9 +484,11 @@
             z-index: 1000;
             display: none;
         }
+        
         .settings-menu.show {
             display: block;
         }
+        
         .settings-menu button {
             width: 100%;
             text-align: left;
@@ -419,9 +499,11 @@
             font-size: 0.875rem;
             color: #374151;
         }
+        
         .settings-menu button:hover {
             background: #f9fafb;
         }
+        
         .error-message {
             color: #dc2626;
             font-size: 0.875rem;
@@ -431,6 +513,7 @@
             border-radius: 0.25rem;
             display: none;
         }
+        
         .success-message {
             color: #16a34a;
             font-size: 0.875rem;
@@ -440,13 +523,16 @@
             border-radius: 0.25rem;
             display: none;
         }
+        
         .password-strength {
             margin-top: 0.5rem;
             font-size: 0.75rem;
         }
+        
         .strength-weak { color: #dc2626; }
         .strength-medium { color: #f59e0b; }
         .strength-strong { color: #16a34a; }
+        
         .permission-warning {
             background: #fef3c7;
             color: #92400e;
@@ -456,16 +542,19 @@
             margin: 0.5rem 0;
             display: none;
         }
+        
         .main-nav {
             background: white;
             border-bottom: 1px solid #e5e7eb;
             padding: 0;
         }
+        
         .nav-tabs {
             display: flex;
             gap: 0;
             border-bottom: none;
         }
+        
         .nav-tab {
             padding: 1rem 1.5rem;
             border: none;
@@ -477,21 +566,76 @@
             border-bottom: 2px solid transparent;
             transition: all 0.2s;
         }
+        
         .nav-tab:hover {
             color: #374151;
             background: #f9fafb;
         }
+        
         .nav-tab.active {
             color: #2563eb;
             border-bottom-color: #2563eb;
             background: white;
         }
+        
         .tab-content {
             display: none;
         }
+        
         .tab-content.active {
             display: block;
         }
+        
+        .task-trail {
+            background: #f8fafc;
+            border-radius: 0.375rem;
+            padding: 0.75rem;
+            margin-top: 0.5rem;
+            border-left: 3px solid #2563eb;
+        }
+        
+        .trail-entry {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        
+        .trail-entry:last-child {
+            border-bottom: none;
+        }
+        
+        .trail-content {
+            flex: 1;
+        }
+        
+        .trail-date {
+            color: #64748b;
+            font-size: 0.75rem;
+            white-space: nowrap;
+            margin-left: 1rem;
+        }
+        
+        .trail-action {
+            font-size: 0.875rem;
+            color: #334155;
+        }
+        
+        .trail-user {
+            font-size: 0.75rem;
+            color: #64748b;
+            font-style: italic;
+        }
+        
+        .trail-toggle {
+            color: #2563eb;
+            cursor: pointer;
+            font-size: 0.75rem;
+            text-decoration: underline;
+            margin-top: 0.25rem;
+        }
+        
         .meeting-card {
             background: white;
             border: 1px solid #e5e7eb;
@@ -500,6 +644,7 @@
             margin-bottom: 1rem;
             box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
         }
+        
         .meeting-header {
             display: flex;
             justify-content: space-between;
@@ -508,107 +653,163 @@
             padding-bottom: 0.5rem;
             border-bottom: 1px solid #e5e7eb;
         }
+        
         .meeting-title {
             font-size: 1.125rem;
             font-weight: 600;
             color: #111827;
         }
+        
         .meeting-date {
             color: #6b7280;
             font-size: 0.875rem;
         }
+        
         .meeting-section {
             margin-bottom: 1rem;
         }
+        
         .meeting-section h4 {
             font-size: 0.875rem;
             font-weight: 600;
             color: #374151;
             margin-bottom: 0.5rem;
         }
+        
         .meeting-section p {
             font-size: 0.875rem;
             color: #6b7280;
             line-height: 1.5;
         }
+        
+        .linked-tasks {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+        }
+        
+        .task-link {
+            background: #dbeafe;
+            color: #1e40af;
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
+            font-size: 0.75rem;
+            text-decoration: none;
+            border: 1px solid #bfdbfe;
+        }
+        
+        .report-modal {
+            max-width: 600px;
+        }
+        
+        .date-range {
+            display: flex;
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+        
+        .date-range input {
+            flex: 1;
+        }
+        
+        .report-actions {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            margin-top: 1.5rem;
+        }
+        
         @media (max-width: 768px) {
             .header-content {
                 flex-direction: column;
                 align-items: stretch;
             }
+            
             .table-container {
                 overflow-x: auto;
             }
+            
             .modal {
                 padding: 0.5rem;
             }
+            
             .form-grid {
                 grid-template-columns: 1fr;
             }
+            
             .user-info {
                 flex-direction: column;
                 gap: 0.5rem;
                 align-items: stretch;
             }
+            
             .nav-tabs {
                 flex-wrap: wrap;
             }
+            
             .nav-tab {
                 padding: 0.75rem 1rem;
                 font-size: 0.8rem;
             }
-        }
-        .debug-info {
-            background: #f0f9ff;
-            border: 1px solid #0ea5e9;
-            padding: 0.5rem;
-            margin: 0.5rem 0;
-            border-radius: 0.25rem;
-            font-size: 0.75rem;
-            color: #0c4a6e;
-        }
-        .status-message {
-            padding: 0.75rem;
-            border-radius: 0.375rem;
-            margin: 1rem 0;
-            font-size: 0.875rem;
-        }
-        .status-success {
-            background: #f0fdf4;
-            border: 1px solid #bbf7d0;
-            color: #166534;
-        }
-        .status-error {
-            background: #fef2f2;
-            border: 1px solid #fecaca;
-            color: #dc2626;
+            
+            .date-range {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
         }
     </style>
 </head>
 <body>
+    <!-- Firebase Configuration -->
+    <script>
+        // Replace with your Firebase config
+        const firebaseConfig = {
+            apiKey: "AIzaSyD6x8u5OeKQxKZQ5H5b5Lx6X3d4wV3X2Xg",
+            authDomain: "sikkim-inspires.firebaseapp.com",
+            projectId: "sikkim-inspires",
+            storageBucket: "sikkim-inspires.appspot.com",
+            messagingSenderId: "123456789012",
+            appId: "1:123456789012:web:abcdef1234567890abcdef"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+        const auth = firebase.auth();
+    </script>
+
     <!-- Login Overlay -->
     <div class="login-overlay" id="loginOverlay">
         <div class="login-card">
             <h2>Sikkim INSPIRES Access Control</h2>
             <p>Please enter your credentials to access the system</p>
+            
             <div class="access-info">
                 <h4>Access Information:</h4>
                 <div>Please contact your system administrator for login credentials.</div>
             </div>
+            
             <div class="login-form">
                 <div class="form-field">
-                    <label for="loginUsername">Username</label>
-                    <input type="text" id="loginUsername" placeholder="Enter your username">
+                    <label for="loginEmail">Email</label>
+                    <input type="email" id="loginEmail" placeholder="Enter your email">
                 </div>
+                
                 <div class="form-field">
                     <label for="loginPassword">Password</label>
                     <input type="password" id="loginPassword" placeholder="Enter password">
                 </div>
+                
                 <div class="error-message" id="loginError"></div>
-                <button class="btn" onclick="login()" id="loginBtn" style="width: 100%; margin-top: 1rem;">Login</button>
+                
+                <button class="btn" onclick="login()" id="loginBtn" style="width: 100%; margin-top: 1rem;">
+                    Login
+                </button>
             </div>
         </div>
     </div>
+
     <!-- Change Password Modal -->
     <div class="modal" id="changePasswordModal">
         <div class="modal-content">
@@ -634,6 +835,46 @@
             </div>
         </div>
     </div>
+
+    <!-- Report Generation Modal -->
+    <div class="modal" id="reportModal">
+        <div class="modal-content report-modal">
+            <h2>Generate Report</h2>
+            <div class="form-group">
+                <label>Select Report Type:</label>
+                <select id="reportType">
+                    <option value="excel">Excel Report (.xlsx)</option>
+                    <option value="word">Word Report (.doc)</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label>Date Range:</label>
+                <div class="date-range">
+                    <input type="date" id="startDate" placeholder="Start Date">
+                    <input type="date" id="endDate" placeholder="End Date">
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label>Include Departments:</label>
+                <div class="filters-grid">
+                    <label><input type="checkbox" name="department" value="C&ID" checked> C&ID</label>
+                    <label><input type="checkbox" name="department" value="DIT" checked> DIT</label>
+                    <label><input type="checkbox" name="department" value="RDD" checked> RDD</label>
+                    <label><input type="checkbox" name="department" value="SDD" checked> SDD</label>
+                    <label><input type="checkbox" name="department" value="T&CAD" checked> T&CAD</label>
+                    <label><input type="checkbox" name="department" value="WCDD" checked> WCDD</label>
+                </div>
+            </div>
+            
+            <div class="report-actions">
+                <button class="btn btn-success" onclick="generateReport()">Generate Report</button>
+                <button class="btn btn-secondary" onclick="hideReportModal()">Cancel</button>
+            </div>
+        </div>
+    </div>
+
     <!-- User Info Bar -->
     <div class="user-info">
         <div class="user-role">
@@ -642,173 +883,142 @@
             <span id="userName">Admin User</span>
         </div>
         <div class="settings-dropdown">
-            <button class="btn btn-sm btn-secondary" onclick="toggleSettingsMenu()">⚙️ Settings ▼</button>
+            <button class="btn btn-sm btn-secondary" onclick="toggleSettingsMenu()">
+                ⚙️ Settings ▼
+            </button>
             <div class="settings-menu" id="settingsMenu">
                 <button onclick="showChangePasswordModal()">🔒 Change Password</button>
+                <button onclick="showReportModal()">📊 Generate Report</button>
                 <button onclick="logout()">🚪 Logout</button>
             </div>
         </div>
     </div>
+
     <!-- Navigation Tabs -->
     <div class="main-nav">
         <div class="nav-tabs">
             <button class="nav-tab active" onclick="switchTab('tasks')">📋 Tasks Management</button>
-            <button class="nav-tab" onclick="switchTab('meetings')">📄 Meeting Minutes</button>
+            <button class="nav-tab" onclick="switchTab('meetings')">📝 Meeting Minutes</button>
         </div>
     </div>
+
     <div class="container">
-        <!-- Status Messages -->
-        <div id="statusMessages"></div>
-        <!-- Tasks Tab Content -->
-        <div id="tasksTab" class="tab-content active">
-            <!-- Header -->
-            <div class="header">
-                <div class="header-content">
-                    <div>
-                        <h1>Sikkim INSPIRES</h1>
-                        <p>Programme Activity Tracker</p>
-                    </div>
-                    <div>
-                        <div class="permission-warning" id="permissionWarning">⚠️ You don't have permission to perform this action</div>
-                        <button class="btn" onclick="showAddTaskModal()" id="addTaskBtn">➕ Add New Task</button>
-                    </div>
+        <!-- Header -->
+        <div class="header">
+            <div class="header-content">
+                <div>
+                    <h1>Sikkim INSPIRES</h1>
+                    <p>Programme Activity Tracker</p>
                 </div>
-                <!-- Stats Cards -->
-                <div class="stats-grid">
-                    <div class="stat-card stat-total">
-                        <div>
-                            <div class="text-xs">Total Tasks</div>
-                            <div class="stat-number" id="totalTasks">0</div>
-                        </div>
+                <div>
+                    <div class="permission-warning" id="permissionWarning">
+                        ⚠️ You don't have permission to perform this action
                     </div>
-                    <div class="stat-card stat-overdue">
-                        <div>
-                            <div class="text-xs">Overdue</div>
-                            <div class="stat-number" id="overdueTasks">0</div>
-                        </div>
-                    </div>
-                    <div class="stat-card stat-urgent">
-                        <div>
-                            <div class="text-xs">Urgent</div>
-                            <div class="stat-number" id="urgentTasks">0</div>
-                        </div>
-                    </div>
-                    <div class="stat-card stat-completed">
-                        <div>
-                            <div class="text-xs">Completed</div>
-                            <div class="stat-number" id="completedTasks">0</div>
-                        </div>
-                    </div>
+                    <button class="btn" onclick="showAddTaskModal()" id="addTaskBtn">
+                        <span>➕</span> Add New Task
+                    </button>
                 </div>
             </div>
-            <!-- Filters -->
-            <div class="filters">
-                <div class="filters-grid">
-                    <div class="search-box">
-                        <svg class="search-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-                        </svg>
-                        <input type="text" class="search-input" placeholder="Search tasks..." id="searchInput" oninput="filterTasks()">
+            
+            <!-- Stats Cards -->
+            <div class="stats-grid">
+                <div class="stat-card stat-total">
+                    <div>
+                        <div class="text-xs">Total Tasks</div>
+                        <div class="stat-number" id="totalTasks">34</div>
                     </div>
-                    <select id="departmentFilter" onchange="filterTasks()">
-                        <option value="all">All Departments</option>
-                        <option value="C&ID">C&ID</option>
-                        <option value="DET">DET</option>
-                        <option value="DIT">DIT</option>
-                        <option value="H&FWD">H&FWD</option>
-                        <option value="RDD">RDD</option>
-                        <option value="SDD">SDD</option>
-                        <option value="T&CAD">T&CAD</option>
-                        <option value="WCDD">WCDD</option>
-                    </select>
-                    <select id="priorityFilter" onchange="filterTasks()">
-                        <option value="all">All Priorities</option>
-                        <option value="overdue">Overdue</option>
-                        <option value="urgent">Urgent</option>
-                        <option value="high">High</option>
-                        <option value="medium">Medium</option>
-                        <option value="low">Low</option>
-                    </select>
-                    <select id="sortBy" onchange="filterTasks()">
-                        <option value="deliveryDate">Sort by Delivery Date</option>
-                        <option value="department">Sort by Department</option>
-                        <option value="id">Sort by ID</option>
-                    </select>
                 </div>
-            </div>
-            <!-- Tasks Table -->
-            <div class="table-container">
-                <table class="table">
-                    <thead>
-                        <tr>
-                            <th>Department</th>
-                            <th>Status & Description</th>
-                            <th>Timeline</th>
-                            <th>Responsibility</th>
-                            <th>Progress Status</th>
-                            <th>Priority</th>
-                            <th>Pending With</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody id="tasksTableBody"></tbody>
-                </table>
-                <div id="emptyState" class="empty-state" style="display: none;">No tasks found matching your criteria.</div>
+                <div class="stat-card stat-overdue">
+                    <div>
+                        <div class="text-xs">Overdue</div>
+                        <div class="stat-number" id="overdueTasks">0</div>
+                    </div>
+                </div>
+                <div class="stat-card stat-urgent">
+                    <div>
+                        <div class="text-xs">Urgent</div>
+                        <div class="stat-number" id="urgentTasks">0</div>
+                    </div>
+                </div>
+                <div class="stat-card stat-completed">
+                    <div>
+                        <div class="text-xs">Completed</div>
+                        <div class="stat-number" id="completedTasks">0</div>
+                    </div>
+                </div>
             </div>
         </div>
-        <!-- Meeting Minutes Tab Content -->
-        <div id="meetingsTab" class="tab-content">
-            <!-- Header -->
-            <div class="header">
-                <div class="header-content">
-                    <div>
-                        <h1>Meeting Minutes</h1>
-                        <p>Programme Meeting Records & Minutes</p>
-                    </div>
-                    <div>
-                        <button class="btn" onclick="showAddMeetingModal()" id="addMeetingBtn">➕ Add New Meeting</button>
-                    </div>
+
+        <!-- Filters -->
+        <div class="filters">
+            <div class="filters-grid">
+                <div class="search-box">
+                    <svg class="search-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                    </svg>
+                    <input type="text" class="search-input" placeholder="Search tasks..." id="searchInput" oninput="filterTasks()">
                 </div>
+                <select id="departmentFilter" onchange="filterTasks()">
+                    <option value="all">All Departments</option>
+                    <option value="C&ID">C&ID</option>
+                    <option value="DIT">DIT</option>
+                    <option value="RDD">RDD</option>
+                    <option value="SDD">SDD</option>
+                    <option value="T&CAD">T&CAD</option>
+                    <option value="WCDD">WCDD</option>
+                </select>
+                <select id="priorityFilter" onchange="filterTasks()">
+                    <option value="all">All Priorities</option>
+                    <option value="overdue">Overdue</option>
+                    <option value="urgent">Urgent</option>
+                    <option value="high">High</option>
+                    <option value="medium">Medium</option>
+                    <option value="low">Low</option>
+                </select>
+                <select id="sortBy" onchange="filterTasks()">
+                    <option value="deliveryDate">Sort by Delivery Date</option>
+                    <option value="department">Sort by Department</option>
+                    <option value="id">Sort by ID</option>
+                </select>
             </div>
-            <!-- Meeting Filters -->
-            <div class="filters">
-                <div class="filters-grid">
-                    <div class="search-box">
-                        <svg class="search-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-                        </svg>
-                        <input type="text" class="search-input" placeholder="Search meetings..." id="meetingSearchInput" oninput="filterMeetings()">
-                    </div>
-                    <select id="meetingDateFilter" onchange="filterMeetings()">
-                        <option value="all">All Dates</option>
-                        <option value="thisWeek">This Week</option>
-                        <option value="thisMonth">This Month</option>
-                        <option value="lastMonth">Last Month</option>
-                    </select>
-                    <select id="meetingSortBy" onchange="filterMeetings()">
-                        <option value="date">Sort by Date (Latest First)</option>
-                        <option value="title">Sort by Title</option>
-                    </select>
-                </div>
+        </div>
+
+        <!-- Tasks Table -->
+        <div class="table-container">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Department</th>
+                        <th>Status & Description</th>
+                        <th>Timeline</th>
+                        <th>Responsibility</th>
+                        <th>Progress Status</th>
+                        <th>Priority</th>
+                        <th>Pending With</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="tasksTableBody">
+                    <!-- Tasks will be populated here -->
+                </tbody>
+            </table>
+            <div id="emptyState" class="empty-state" style="display: none;">
+                No tasks found matching your criteria.
             </div>
-            <!-- Meeting Minutes Container -->
-            <div id="meetingsContainer"></div>
-            <div id="meetingEmptyState" class="empty-state" style="display: none;">No meeting minutes found.</div>
         </div>
     </div>
+
     <!-- Task Modal -->
     <div class="modal" id="taskModal">
         <div class="modal-content">
             <h2 id="modalTitle">Add New Task</h2>
             <div class="form-grid">
                 <div class="form-group">
-                    <label for="taskDepartment">Department *</label>
-                    <select id="taskDepartment" required>
+                    <label for="taskDepartment">Department</label>
+                    <select id="taskDepartment">
                         <option value="">Select Department</option>
                         <option value="C&ID">C&ID</option>
-                        <option value="DET">DET</option>
                         <option value="DIT">DIT</option>
-                        <option value="H&FWD">H&FWD</option>
                         <option value="RDD">RDD</option>
                         <option value="SDD">SDD</option>
                         <option value="T&CAD">T&CAD</option>
@@ -824,8 +1034,8 @@
                     <input type="text" id="taskTo">
                 </div>
                 <div class="form-group">
-                    <label for="taskStartDate">Start Date *</label>
-                    <input type="date" id="taskStartDate" required>
+                    <label for="taskStartDate">Start Date</label>
+                    <input type="date" id="taskStartDate">
                 </div>
                 <div class="form-group">
                     <label for="taskDeliveryDate">Delivery Date</label>
@@ -848,16 +1058,16 @@
                 </div>
             </div>
             <div class="form-group">
-                <label for="taskStatus">Status Description *</label>
-                <textarea id="taskStatus" rows="3" required placeholder="Describe the current status of this task..."></textarea>
+                <label for="taskStatus">Status Description</label>
+                <textarea id="taskStatus" rows="3"></textarea>
             </div>
             <div class="form-group">
                 <label for="taskRemarks">Remarks</label>
-                <input type="text" id="taskRemarks" placeholder="Additional remarks or notes...">
+                <input type="text" id="taskRemarks">
             </div>
             <div class="form-group">
                 <label for="taskProgress">Progress Details</label>
-                <textarea id="taskProgress" rows="2" placeholder="Detailed progress description..."></textarea>
+                <textarea id="taskProgress" rows="2"></textarea>
             </div>
             <div class="form-group">
                 <label for="taskProgressDate">Progress Date</label>
@@ -865,7 +1075,7 @@
             </div>
             <div class="form-group">
                 <label for="taskNextStep">Next Step</label>
-                <input type="text" id="taskNextStep" placeholder="What is the next action required?">
+                <input type="text" id="taskNextStep">
             </div>
             <div class="btn-group">
                 <button class="btn" onclick="saveTask()">Save Task</button>
@@ -873,118 +1083,38 @@
             </div>
         </div>
     </div>
-    <!-- Meeting Modal -->
-    <div class="modal" id="meetingModal">
-        <div class="modal-content">
-            <h2 id="meetingModalTitle">Add New Meeting</h2>
-            <div class="form-grid">
-                <div class="form-group">
-                    <label for="meetingTitle">Meeting Title *</label>
-                    <input type="text" id="meetingTitle" placeholder="Enter meeting title" required>
-                </div>
-                <div class="form-group">
-                    <label for="meetingDate">Meeting Date *</label>
-                    <input type="datetime-local" id="meetingDate" required>
-                </div>
-                <div class="form-group">
-                    <label for="meetingDepartments">Departments Involved</label>
-                    <input type="text" id="meetingDepartments" placeholder="e.g., C&ID, DIT, PMU">
-                </div>
-                <div class="form-group">
-                    <label for="meetingChairperson">Chairperson</label>
-                    <input type="text" id="meetingChairperson" placeholder="Meeting chairperson">
-                </div>
-            </div>
-            <div class="form-group">
-                <label for="meetingAttendees">Attendees *</label>
-                <textarea id="meetingAttendees" rows="3" placeholder="List of attendees..." required></textarea>
-            </div>
-            <div class="form-group">
-                <label for="meetingObjective">Meeting Objective *</label>
-                <textarea id="meetingObjective" rows="2" placeholder="Purpose/objective of the meeting..." required></textarea>
-            </div>
-            <div class="form-group">
-                <label for="meetingDiscussion">Key Discussion Points</label>
-                <textarea id="meetingDiscussion" rows="4" placeholder="Summary of key discussion points..."></textarea>
-            </div>
-            <div class="form-group">
-                <label for="meetingDecisions">Decisions Made</label>
-                <textarea id="meetingDecisions" rows="3" placeholder="Key decisions and outcomes..."></textarea>
-            </div>
-            <div class="form-group">
-                <label for="meetingActionItems">Action Items</label>
-                <textarea id="meetingActionItems" rows="4" placeholder="Action items with responsible persons and deadlines..."></textarea>
-            </div>
-            <div class="form-group">
-                <label for="meetingNextSteps">Next Steps</label>
-                <textarea id="meetingNextSteps" rows="2" placeholder="Next meeting date, follow-up actions..."></textarea>
-            </div>
-            <div class="btn-group">
-                <button class="btn" onclick="saveMeeting()">Save Meeting</button>
-                <button class="btn btn-secondary" onclick="hideMeetingModal()">Cancel</button>
-            </div>
-        </div>
-    </div>
-    <!-- Report Modal -->
-    <div class="modal" id="reportModal">
-        <div class="modal-content">
-            <h2>Generate Report</h2>
-            <div class="form-group">
-                <label for="reportType">Report Type</label>
-                <select id="reportType">
-                    <option value="tasks">Tasks Report</option>
-                    <option value="meetings">Meetings Report</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label for="reportFormat">Format</label>
-                <select id="reportFormat">
-                    <option value="word">Word Document</option>
-                    <option value="excel">Excel Spreadsheet</option>
-                    <option value="both">Both Formats</option>
-                    <option value="email">Email Report</option>
-                </select>
-            </div>
-            <div class="form-group" id="emailFieldGroup" style="display: none;">
-                <label for="recipientEmail">Recipient Email</label>
-                <input type="email" id="recipientEmail" placeholder="Enter recipient email">
-            </div>
-            <div class="btn-group">
-                <button class="btn" onclick="generateReport()">Generate</button>
-                <button class="btn btn-secondary" onclick="hideReportModal()">Cancel</button>
-            </div>
-        </div>
-    </div>
-    <!-- Predefined Tasks Modal -->
-    <div class="modal" id="predefinedTasksModal">
-        <div class="modal-content">
-            <h2>Load Predefined Tasks</h2>
-            <p>Select which predefined tasks to add to your tracker:</p>
-            <div style="max-height: 400px; overflow-y: auto;" id="predefinedTasksList"></div>
-            <div class="btn-group" style="margin-top: 20px;">
-                <button class="btn" onclick="addSelectedPredefinedTasks()">Add Selected Tasks</button>
-                <button class="btn btn-secondary" onclick="hidePredefinedTasksModal()">Cancel</button>
-            </div>
-        </div>
-    </div>
+
     <script>
-        // Firebase Configuration
-        const firebaseConfig = {
-            apiKey: "YOUR_API_KEY",
-            authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-            projectId: "YOUR_PROJECT_ID",
-            storageBucket: "YOUR_PROJECT_ID.appspot.com",
-            messagingSenderId: "YOUR_SENDER_ID",
-            appId: "YOUR_APP_ID"
+        // User Database with Password Authentication
+        let userDatabase = {
+            "admin@inspires.com": {
+                password: 'admin123',
+                role: 'admin',
+                name: 'System Administrator',
+                lastLogin: null
+            },
+            "operator@inspires.com": {
+                password: 'op123',
+                role: 'operator', 
+                name: 'Data Entry Operator',
+                lastLogin: null
+            },
+            "viewer@inspires.com": {
+                password: 'view123',
+                role: 'viewer',
+                name: 'Viewer',
+                lastLogin: null
+            }
         };
-        // Initialize Firebase
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.firestore();
-        const auth = firebase.auth();
-        const storage = firebase.storage();
-        // Initialize EmailJS
-        emailjs.init("YOUR_EMAILJS_USER_ID");
-        // Role Configuration
+
+        // User Access Control System
+        let currentUser = {
+            email: null,
+            role: null,
+            name: '',
+            permissions: {}
+        };
+
         const roleConfig = {
             admin: {
                 name: 'System Administrator',
@@ -994,7 +1124,8 @@
                     add: true,
                     edit: true,
                     delete: true,
-                    changePassword: true
+                    changePassword: true,
+                    generateReports: true
                 }
             },
             operator: {
@@ -1005,7 +1136,8 @@
                     add: true,
                     edit: false,
                     delete: false,
-                    changePassword: true
+                    changePassword: true,
+                    generateReports: true
                 }
             },
             viewer: {
@@ -1016,782 +1148,648 @@
                     add: false,
                     edit: false,
                     delete: false,
-                    changePassword: true
+                    changePassword: true,
+                    generateReports: false
                 }
             }
         };
-        // Current User
-        let currentUser = {
-            username: null,
-            role: null,
-            name: '',
-            permissions: {}
-        };
-        // Current active tab
-        let activeTab = 'tasks';
-        let currentEditId = null;
-        let currentEditMeetingId = null;
-        // Tasks and Meetings Data
-        let tasks = [];
-        let meetings = [];
-        // Predefined Tasks
-        const predefinedTasks = [
+
+        // Initial data - all 34 tasks
+        let tasks = [
+            // C&ID Tasks (5)
             {
                 id: 1,
                 department: "C&ID",
-                defaultStatus: "Convergence discussion between EEPF and Innovation Hub completed and TSA has shared the Scope of Work for Lead Incubation Partner with PMU for review.",
-                defaultRemarks: "With PMU",
+                status: "Convergence discussion between EEPF and Innovation Hub completed and TSA has shared the Scope of Work for Lead Incubation Partner with PMU for review.",
+                remarks: "With PMU",
                 from: "PMU",
                 to: "C&ID",
                 startDate: "2025-08-06",
-                deliveryDate: "2025-08-20",
-                priority: "high",
-                category: "Innovation Hub"
+                deliveryDate: "",
+                progressDetails: "",
+                progressDate: "",
+                priority: "auto",
+                pendingWith: "PMU",
+                nextStep: ""
             },
             {
                 id: 2,
-                department: "DIT",
-                defaultStatus: "Digital readiness training - Approval from HCM received and work order has been issued to the identified vendor.",
-                defaultRemarks: "Training plan awaited, timelines to be fixed",
-                from: "Vendor",
-                to: "DIT",
+                department: "C&ID",
+                status: "File has been initiated for the establishment of Innovation Hub as a legal entity",
+                remarks: "Timeline and the stage at which it is there",
+                from: "",
+                to: "",
                 startDate: "2025-08-06",
-                deliveryDate: "2025-08-25",
-                priority: "high",
-                category: "Digital Readiness"
+                deliveryDate: "",
+                progressDetails: "",
+                progressDate: "",
+                priority: "auto",
+                pendingWith: "Legal Department",
+                nextStep: ""
             },
             {
                 id: 3,
-                department: "SDD",
-                defaultStatus: "Skill gap study RFP finalized and shared with vendors for bidding.",
-                defaultRemarks: "Awaiting vendor responses",
-                from: "PMU",
-                to: "SDD",
-                startDate: "2025-08-07",
-                deliveryDate: "2025-08-22",
-                priority: "medium",
-                category: "Skill Development"
+                department: "C&ID",
+                status: "Need assessment of DIC personnel in terms of capacity building to be submitted to PMU by 15th Aug. 2 proposals have been received – one each from BIMTech and IIM Calcutta. One proposal expected to be received from IIM Ahmedabad within a week",
+                remarks: "Proposals from three educational institutions",
+                from: "C&ID",
+                to: "PMU",
+                startDate: "2025-08-06",
+                deliveryDate: "2025-08-15",
+                progressDetails: "",
+                progressDate: "",
+                priority: "auto",
+                pendingWith: "IIM Ahmedabad",
+                nextStep: ""
             },
             {
                 id: 4,
-                department: "RDD",
-                defaultStatus: "District-level resource persons identified for DLR training.",
-                defaultRemarks: "Training schedule to be finalized",
-                from: "PMU",
-                to: "RDD",
-                startDate: "2025-08-08",
-                deliveryDate: "2025-08-24",
-                priority: "medium",
-                category: "Digital Literacy"
+                department: "C&ID",
+                status: "SYSS - TSA has conducted meeting with LDM for expedition of NPA data from banks. Department would share request to LDM in a day or 2 for the said data",
+                remarks: "Getting the data from banks has been an issue except the State Bank of Sikkim",
+                from: "C&ID",
+                to: "LDM",
+                startDate: "2025-08-06",
+                deliveryDate: "",
+                progressDetails: "",
+                progressDate: "",
+                priority: "auto",
+                pendingWith: "Banks",
+                nextStep: ""
             },
             {
                 id: 5,
-                department: "H&FWD",
-                defaultStatus: "NPA data collection from banks initiated for baseline assessment.",
-                defaultRemarks: "Data from 3 banks received",
+                department: "C&ID",
+                status: "Feedback from WB to C&ID has been sent on Interim report on Assessment Study on Efficiency and Effectiveness of SYSS 1.0",
+                remarks: "Was sent on 7th August 2025",
                 from: "PMU",
-                to: "H&FWD",
-                startDate: "2025-08-05",
-                deliveryDate: "2025-08-19",
-                priority: "high",
-                category: "Baseline Assessment"
+                to: "TSA",
+                startDate: "2025-08-07",
+                deliveryDate: "",
+                progressDetails: "",
+                progressDate: "",
+                priority: "auto",
+                pendingWith: "TSA",
+                nextStep: ""
             },
+            // DIT Tasks (8)
             {
                 id: 6,
-                department: "T&CAD",
-                defaultStatus: "IEIAP district plans under review by World Bank team.",
-                defaultRemarks: "Feedback expected by August 18",
-                from: "World Bank",
-                to: "T&CAD",
-                startDate: "2025-08-04",
-                deliveryDate: "2025-08-18",
-                priority: "urgent",
-                category: "Institutional Strengthening"
+                department: "DIT",
+                status: "Feasibility study report has been submitted and PMU has asked for an exclusive discussion on the same. TSA to share time of meeting either on 7th Aug or 11th Aug. The disclaimer in the report is not acceptable and some of the recommendations also seem not feasible which need to be discussed further in detail.",
+                remarks: "Need discussions",
+                from: "PMU",
+                to: "DIT",
+                startDate: "2025-08-06",
+                deliveryDate: "",
+                progressDetails: "Need confirmation on turnaround time from C&ID",
+                progressDate: "2025-08-06",
+                priority: "auto",
+                pendingWith: "TSA",
+                nextStep: "Write an email?"
             },
             {
                 id: 7,
-                department: "WCDD",
-                defaultStatus: "Women entrepreneurship training modules being developed with TSA support.",
-                defaultRemarks: "Draft modules ready for review",
-                from: "TSA",
-                to: "WCDD",
-                startDate: "2025-08-09",
-                deliveryDate: "2025-08-23",
-                priority: "medium",
-                category: "Women Entrepreneurship"
+                department: "DIT",
+                status: "Proposals for DPR of State Data Centre – ongoing",
+                remarks: "Clarity needed in this point",
+                from: "",
+                to: "",
+                startDate: "2025-08-06",
+                deliveryDate: "",
+                progressDetails: "",
+                progressDate: "",
+                priority: "auto",
+                pendingWith: "DIT",
+                nextStep: ""
             },
             {
                 id: 8,
-                department: "DET",
-                defaultStatus: "State Data Centre DPR preparation in progress with selected vendor.",
-                defaultRemarks: "Vendor submitted initial draft",
+                department: "DIT",
+                status: "Digital readiness training - Approval from HCM received and work order has been issued to the identified vendor. Vendor to share training plan in a week's time post which DIT would write letters to all departments for nominating personnel for training.",
+                remarks: "Training plan awaited, timelines to be fixed",
                 from: "Vendor",
-                to: "DET",
-                startDate: "2025-08-10",
-                deliveryDate: "2025-08-30",
-                priority: "high",
-                category: "Digital Infrastructure"
+                to: "DIT",
+                startDate: "2025-08-06",
+                deliveryDate: "",
+                progressDetails: "",
+                progressDate: "",
+                priority: "auto",
+                pendingWith: "Vendor",
+                nextStep: ""
             },
             {
                 id: 9,
-                department: "C&ID",
-                defaultStatus: "Innovation challenge guidelines being finalized for launch in September.",
-                defaultRemarks: "Review meeting scheduled for August 20",
-                from: "PMU",
-                to: "C&ID",
-                startDate: "2025-08-11",
-                deliveryDate: "2025-08-28",
-                priority: "medium",
-                category: "Innovation Hub"
+                department: "DIT",
+                status: "DLR 6.2.2 - compliance document for achievement for DLR to be shared by 7th Aug",
+                remarks: "DLR 6.2.2 Secretary IT and PGC have approved the State Data Policy",
+                from: "TSA",
+                to: "PMU",
+                startDate: "2025-08-06",
+                deliveryDate: "2025-08-07",
+                progressDetails: "Submitted to IVA, IVA will verify 6.1.1 and 6.1.2 first before delving in to 6.2.2 as per email of Prof. Priya sent on 09/08/25",
+                progressDate: "2025-08-09",
+                priority: "overdue",
+                pendingWith: "IVA",
+                nextStep: "Followup with IVA"
             },
             {
                 id: 10,
                 department: "DIT",
-                defaultStatus: "Digital readiness assessment tool being customized for Sikkim context.",
-                defaultRemarks: "Pilot testing planned for August 25",
-                from: "TSA",
-                to: "DIT",
-                startDate: "2025-08-12",
-                deliveryDate: "2025-08-25",
-                priority: "high",
-                category: "Digital Readiness"
+                status: "DLR 6.2.1 ITD has prepared the State Data Policy and compliance plan",
+                remarks: "with IVA for verification",
+                from: "PMU",
+                to: "IVA",
+                startDate: "2025-08-06",
+                deliveryDate: "",
+                progressDetails: "",
+                progressDate: "",
+                priority: "auto",
+                pendingWith: "IVA",
+                nextStep: ""
             },
             {
                 id: 11,
-                department: "SDD",
-                defaultStatus: "Skill gap analysis report draft prepared for review.",
-                defaultRemarks: "Review comments awaited from PMU",
-                from: "SDD",
+                department: "DIT",
+                status: "IT Needs assessment: 2 RFPs would be prepared. One covering MIS, LMS (internal and external) and employment and entrepreneurship portal ; and the second one covering CBP, SYSS and AAMA scheme automation.",
+                remarks: "2 RFPs see task, Timelines",
+                from: "TSA",
                 to: "PMU",
-                startDate: "2025-08-13",
-                deliveryDate: "2025-08-27",
-                priority: "medium",
-                category: "Skill Development"
+                startDate: "2025-08-06",
+                deliveryDate: "",
+                progressDetails: "",
+                progressDate: "",
+                priority: "auto",
+                pendingWith: "TSA",
+                nextStep: ""
             },
             {
                 id: 12,
-                department: "RDD",
-                defaultStatus: "DLR training materials being translated into local languages.",
-                defaultRemarks: "Translation for 2 languages completed",
-                from: "RDD",
-                to: "Translation Agency",
-                startDate: "2025-08-14",
-                deliveryDate: "2025-08-28",
-                priority: "medium",
-                category: "Digital Literacy"
+                department: "DIT",
+                status: "TSA would conduct consultations with all related departments by 17th Aug and prepare the draft ToRs by 23rd August",
+                remarks: "Consultation with departments by 17th August",
+                from: "TSA",
+                to: "PMU",
+                startDate: "2025-08-06",
+                deliveryDate: "2025-08-23",
+                progressDetails: "",
+                progressDate: "",
+                priority: "auto",
+                pendingWith: "TSA",
+                nextStep: ""
             },
             {
                 id: 13,
-                department: "H&FWD",
-                defaultStatus: "Baseline survey instruments finalized and shared with enumerators.",
-                defaultRemarks: "Training for enumerators scheduled",
-                from: "PMU",
-                to: "H&FWD",
-                startDate: "2025-08-15",
-                deliveryDate: "2025-08-29",
-                priority: "high",
-                category: "Baseline Assessment"
+                department: "DIT",
+                status: "TSA wishes to seek time from Ambrish during his visit to Gangtok in the week of 25th Aug to discuss the ToRs and further fine tune the same.",
+                remarks: "Discussions with Ambarish during Gangtok visit",
+                from: "TSA",
+                to: "World Bank",
+                startDate: "2025-08-06",
+                deliveryDate: "2025-08-25",
+                progressDetails: "",
+                progressDate: "",
+                priority: "auto",
+                pendingWith: "World Bank",
+                nextStep: ""
             },
+            // RDD Tasks (5)
             {
                 id: 14,
-                department: "T&CAD",
-                defaultStatus: "IEIAP implementation manual being updated based on World Bank feedback.",
-                defaultRemarks: "Final version to be submitted by August 22",
-                from: "T&CAD",
-                to: "World Bank",
-                startDate: "2025-08-16",
-                deliveryDate: "2025-08-22",
-                priority: "urgent",
-                category: "Institutional Strengthening"
+                department: "RDD",
+                status: "On the IEIAP documents, the TSA has requested that the timeline maybe set for end of August tentatively for preparation of all 6 district plans.",
+                remarks: "All 6 district IEIAP plans",
+                from: "TSA",
+                to: "PMU",
+                startDate: "2025-08-06",
+                deliveryDate: "2025-08-31",
+                progressDetails: "",
+                progressDate: "",
+                priority: "auto",
+                pendingWith: "PMU",
+                nextStep: ""
             },
             {
                 id: 15,
-                department: "WCDD",
-                defaultStatus: "Selection committee formed for women entrepreneurship training providers.",
-                defaultRemarks: "Committee meeting on August 20",
-                from: "WCDD",
-                to: "Selection Committee",
-                startDate: "2025-08-17",
-                deliveryDate: "2025-09-02",
-                priority: "medium",
-                category: "Women Entrepreneurship"
+                department: "RDD",
+                status: "TNA of SIRD has been submitted to PMU for review",
+                remarks: "With PMU and WB",
+                from: "PMU",
+                to: "TSA",
+                startDate: "2025-08-06",
+                deliveryDate: "",
+                progressDetails: "",
+                progressDate: "",
+                priority: "auto",
+                pendingWith: "PMU & WB",
+                nextStep: ""
             },
             {
                 id: 16,
-                department: "DET",
-                defaultStatus: "State Data Centre site selection process initiated.",
-                defaultRemarks: "3 potential sites identified",
-                from: "DET",
-                to: "Infrastructure Team",
-                startDate: "2025-08-18",
-                deliveryDate: "2025-09-05",
-                priority: "high",
-                category: "Digital Infrastructure"
+                department: "RDD",
+                status: "District level consultation meeting planned on 11th Aug at Soreng, 12th Aug at Gyalshing and 13th Aug at Namchi",
+                remarks: "IEIAP consultation meetings",
+                from: "TSA",
+                to: "District Administration",
+                startDate: "2025-08-06",
+                deliveryDate: "",
+                progressDetails: "",
+                progressDate: "",
+                priority: "auto",
+                pendingWith: "District Administration",
+                nextStep: ""
             },
             {
                 id: 17,
-                department: "C&ID",
-                defaultStatus: "Lead Incubation Partner selection process documentation being prepared.",
-                defaultRemarks: "Draft RFP under review",
-                from: "C&ID",
-                to: "Legal Team",
-                startDate: "2025-08-19",
-                deliveryDate: "2025-09-03",
-                priority: "medium",
-                category: "Innovation Hub"
+                department: "RDD",
+                status: "Appointment of one District project manager in each of the 6 districts for IEIAP implementation to be explored by PMU",
+                remarks: "Recruitment of District Project Manager for IEIAP",
+                from: "Check",
+                to: "",
+                startDate: "2025-08-06",
+                deliveryDate: "",
+                progressDetails: "",
+                progressDate: "",
+                priority: "auto",
+                pendingWith: "PMU",
+                nextStep: ""
             },
             {
                 id: 18,
-                department: "DIT",
-                defaultStatus: "Digital readiness training calendar being finalized with vendor.",
-                defaultRemarks: "Vendor submitted proposed dates",
-                from: "Vendor",
-                to: "DIT",
-                startDate: "2025-08-20",
-                deliveryDate: "2025-09-01",
-                priority: "high",
-                category: "Digital Readiness"
+                department: "RDD",
+                status: "CBT plans to be incorporated into the IEIAP after review of the CBT strategy document. TSA has requested PMU for a JWG meeting for better clarity on the Tourism department related interventions.",
+                remarks: "JWM Meeting need to be conducted with the initiative of the PMU",
+                from: "PMU",
+                to: "Check",
+                startDate: "2025-08-06",
+                deliveryDate: "",
+                progressDetails: "",
+                progressDate: "",
+                priority: "auto",
+                pendingWith: "PMU",
+                nextStep: ""
             },
+            // SDD Tasks (7)
             {
                 id: 19,
                 department: "SDD",
-                defaultStatus: "Skill development centers identification process ongoing.",
-                defaultRemarks: "Site visits completed for 5 districts",
-                from: "SDD",
-                to: "District Offices",
-                startDate: "2025-08-21",
-                deliveryDate: "2025-09-07",
-                priority: "medium",
-                category: "Skill Development"
+                status: "Draft 2- RFP for selection of agency to conduct Skill gap study (SGAS)",
+                remarks: "20/08/2025",
+                from: "TSA",
+                to: "PMU",
+                startDate: "2025-08-06",
+                deliveryDate: "2025-08-20",
+                progressDetails: "Feedback received from World Bank on 7th July, TSA was to share the report on August 20th working on the feedback",
+                progressDate: "2025-07-07",
+                priority: "auto",
+                pendingWith: "TSA-SDD",
+                nextStep: "Check and send a follow-up email to check with the TSA-SDD"
             },
             {
                 id: 20,
-                department: "RDD",
-                defaultStatus: "DLR master trainers identification and selection in progress.",
-                defaultRemarks: "Shortlist prepared for 10 districts",
-                from: "RDD",
-                to: "District Collectors",
-                startDate: "2025-08-22",
-                deliveryDate: "2025-09-05",
-                priority: "medium",
-                category: "Digital Literacy"
+                department: "SDD",
+                status: "First draft of the Guidelines for virtual and blended Career Counselling and Placement Support Services",
+                remarks: "Target date 15th September, share the work progress on 20th August",
+                from: "SDD",
+                to: "PMU",
+                startDate: "2025-08-06",
+                deliveryDate: "2025-08-20",
+                progressDetails: "",
+                progressDate: "",
+                priority: "auto",
+                pendingWith: "TSA-SDD",
+                nextStep: "Check and send a follow-up email to check with the TSA-SDD"
             },
             {
                 id: 21,
-                department: "H&FWD",
-                defaultStatus: "Baseline data collection training materials being prepared.",
-                defaultRemarks: "Draft materials shared with PMU",
-                from: "H&FWD",
+                department: "SDD",
+                status: "Career counselling and placement support services – Guidelines to be shared with PMU by 15th Sept. Plan for achievement of DLR 4.2.1 has been shared by TSA with PMU. Achievement expected by mid March 2026",
+                remarks: "DLR 4.2.1Virtual and blended career counselling and placement support services launched by SICB/ Niyukti Kendra/ SDD. Guidelines sharing by 15th September, share work in progress by 20th August",
+                from: "SDD",
                 to: "PMU",
-                startDate: "2025-08-23",
-                deliveryDate: "2025-09-06",
-                priority: "high",
-                category: "Baseline Assessment"
+                startDate: "2025-08-06",
+                deliveryDate: "2025-08-20",
+                progressDetails: "",
+                progressDate: "",
+                priority: "auto",
+                pendingWith: "SDD",
+                nextStep: ""
             },
             {
                 id: 22,
-                department: "T&CAD",
-                defaultStatus: "IEIAP monitoring framework being developed with World Bank support.",
-                defaultRemarks: "Framework outline approved",
-                from: "World Bank",
-                to: "T&CAD",
-                startDate: "2025-08-24",
-                deliveryDate: "2025-09-10",
-                priority: "medium",
-                category: "Institutional Strengthening"
+                department: "SDD",
+                status: "Infrastructure needs assessment report of SICB and 5 livelihood schools",
+                remarks: "Followup after 20th October",
+                from: "SDD",
+                to: "PMU",
+                startDate: "2025-08-06",
+                deliveryDate: "2025-08-15",
+                progressDetails: "",
+                progressDate: "",
+                priority: "auto",
+                pendingWith: "SDD",
+                nextStep: ""
             },
             {
                 id: 23,
-                department: "WCDD",
-                defaultStatus: "Women entrepreneurship mentorship program design underway.",
-                defaultRemarks: "Consultant hired for program design",
-                from: "WCDD",
-                to: "Consultant",
-                startDate: "2025-08-25",
-                deliveryDate: "2025-09-15",
-                priority: "medium",
-                category: "Women Entrepreneurship"
+                department: "SDD",
+                status: "Needs assessment and institutional strengthening plan of SDD, SICB and Niyukti Kendra – framework to be shared with PMU by 20th October",
+                remarks: "Framework on 20th August delivery on 20th October",
+                from: "SDD",
+                to: "PMU",
+                startDate: "2025-08-06",
+                deliveryDate: "2025-08-20",
+                progressDetails: "",
+                progressDate: "",
+                priority: "auto",
+                pendingWith: "SDD",
+                nextStep: ""
             },
             {
                 id: 24,
-                department: "DET",
-                defaultStatus: "State Data Centre technical specifications being finalized.",
-                defaultRemarks: "Review meeting with vendor on August 28",
-                from: "DET",
-                to: "Vendor",
-                startDate: "2025-08-26",
-                deliveryDate: "2025-09-10",
-                priority: "high",
-                category: "Digital Infrastructure"
+                department: "SDD",
+                status: "First draft of Content Management System guidelines for SDD Website. Action by 20th August - Communicate with TSA- ITD regarding the CMS Share the requirement document",
+                remarks: "Followup after 20th August",
+                from: "TSA",
+                to: "PMU",
+                startDate: "2025-08-06",
+                deliveryDate: "2025-08-20",
+                progressDetails: "Did TSA SDD communicate the IT-related invention to TSA DIT?",
+                progressDate: "2025-08-06",
+                priority: "auto",
+                pendingWith: "TSA-SDD",
+                nextStep: "Check and send a follow-up email to check with the TSA-SDD"
             },
             {
                 id: 25,
-                department: "C&ID",
-                defaultStatus: "Innovation challenge evaluation criteria being finalized.",
-                defaultRemarks: "Stakeholder consultation scheduled",
-                from: "C&ID",
-                to: "Stakeholders",
-                startDate: "2025-08-27",
-                deliveryDate: "2025-09-12",
-                priority: "medium",
-                category: "Innovation Hub"
+                department: "SDD",
+                status: "First draft of Sikkim International Migration and Mobility Scheme (SIMMS) document Communicate with TSA- ITD regarding the CMS",
+                remarks: "Check",
+                from: "TSA",
+                to: "PMU",
+                startDate: "2025-08-06",
+                deliveryDate: "2025-08-20",
+                progressDetails: "",
+                progressDate: "",
+                priority: "auto",
+                pendingWith: "TSA-SDD",
+                nextStep: "Check and send a follow-up email to check with the TSA-SDD"
             },
+            // T&CAD Tasks (5)
             {
                 id: 26,
-                department: "DIT",
-                defaultStatus: "Digital readiness assessment pilot testing planned for September.",
-                defaultRemarks: "Test locations being finalized",
-                from: "DIT",
-                to: "PMU",
-                startDate: "2025-08-28",
-                deliveryDate: "2025-09-15",
-                priority: "high",
-                category: "Digital Readiness"
+                department: "T&CAD",
+                status: "Strategy of training programs to be conducted by IHM and IHCAE to be prepared by TCAD specifically highlighting the outreach activities to attract youth and women to the training programs",
+                remarks: "Training strategy document needed from TCAD, Timeline",
+                from: "",
+                to: "",
+                startDate: "2025-08-06",
+                deliveryDate: "",
+                progressDetails: "",
+                progressDate: "",
+                priority: "auto",
+                pendingWith: "TCAD",
+                nextStep: ""
             },
             {
                 id: 27,
-                department: "SDD",
-                defaultStatus: "Skill gap analysis report finalization in progress.",
-                defaultRemarks: "Final review meeting on September 1",
-                from: "SDD",
-                to: "PMU",
-                startDate: "2025-08-29",
-                deliveryDate: "2025-09-01",
-                priority: "urgent",
-                category: "Skill Development"
+                department: "T&CAD",
+                status: "IHCAE training calendar has been approved as informed by TCAD",
+                remarks: "Training Calendar to be sent by TCAD",
+                from: "",
+                to: "",
+                startDate: "2025-08-06",
+                deliveryDate: "",
+                progressDetails: "",
+                progressDate: "",
+                priority: "auto",
+                pendingWith: "TCAD",
+                nextStep: ""
             },
             {
                 id: 28,
-                department: "RDD",
-                defaultStatus: "DLR training of trainers program schedule being prepared.",
-                defaultRemarks: "Venues being booked for September sessions",
-                from: "RDD",
-                to: "Training Team",
-                startDate: "2025-08-30",
-                deliveryDate: "2025-09-10",
-                priority: "medium",
-                category: "Digital Literacy"
+                department: "T&CAD",
+                status: "TCAD to support PMU in obtaining training data from IHM and IHCAE for 2 years before April 2024 as part of the baseline for PDO achievement",
+                remarks: "Obtaining data from IHM and IHCAE",
+                from: "",
+                to: "",
+                startDate: "2025-08-06",
+                deliveryDate: "",
+                progressDetails: "",
+                progressDate: "",
+                priority: "auto",
+                pendingWith: "IHM & IHCAE",
+                nextStep: ""
             },
             {
                 id: 29,
-                department: "H&FWD",
-                defaultStatus: "Baseline survey fieldwork preparation underway.",
-                defaultRemarks: "Field teams being constituted",
-                from: "H&FWD",
-                to: "Survey Agency",
-                startDate: "2025-08-31",
-                deliveryDate: "2025-09-15",
-                priority: "high",
-                category: "Baseline Assessment"
+                department: "T&CAD",
+                status: "Board of Governors meeting for IHM was held in April 2025 and IHCAE was held in July 2025. TCAD to share the Minutes of the Meetings with PMU",
+                remarks: "TCAD to share minutes of the meeting",
+                from: "",
+                to: "",
+                startDate: "2025-08-06",
+                deliveryDate: "",
+                progressDetails: "",
+                progressDate: "",
+                priority: "auto",
+                pendingWith: "TCAD",
+                nextStep: ""
             },
             {
                 id: 30,
                 department: "T&CAD",
-                defaultStatus: "IEIAP implementation manual final version under review.",
-                defaultRemarks: "World Bank comments incorporated",
-                from: "T&CAD",
-                to: "World Bank",
-                startDate: "2025-09-01",
-                deliveryDate: "2025-09-10",
-                priority: "urgent",
-                category: "Institutional Strengthening"
+                status: "PMU to share the list of 7 identified ecotourism sites to be used by TCAD for developing CBT plans",
+                remarks: "List to be shared with TCAD",
+                from: "PMU",
+                to: "TCAD",
+                startDate: "2025-08-06",
+                deliveryDate: "",
+                progressDetails: "",
+                progressDate: "",
+                priority: "auto",
+                pendingWith: "PMU",
+                nextStep: ""
             },
+            // WCDD Tasks (4)
             {
                 id: 31,
                 department: "WCDD",
-                defaultStatus: "Women entrepreneurship training provider selection process initiated.",
-                defaultRemarks: "RFPs issued to shortlisted vendors",
-                from: "WCDD",
-                to: "Vendors",
-                startDate: "2025-09-02",
-                deliveryDate: "2025-09-20",
-                priority: "medium",
-                category: "Women Entrepreneurship"
+                status: "It was agreed for the ICMS RFP floating deadline to be 15th September 2025 and the same would be mentioned in the Technical Note of the WB's 3rd ISM",
+                remarks: "To be noted in technical note of WB's 3rd ISM",
+                from: "",
+                to: "",
+                startDate: "2025-08-06",
+                deliveryDate: "2025-09-15",
+                progressDetails: "",
+                progressDate: "",
+                priority: "auto",
+                pendingWith: "World Bank",
+                nextStep: ""
             },
             {
                 id: 32,
-                department: "DET",
-                defaultStatus: "State Data Centre DPR final review in progress.",
-                defaultRemarks: "Final submission expected by September 15",
-                from: "DET",
-                to: "Vendor",
-                startDate: "2025-09-03",
-                deliveryDate: "2025-09-15",
-                priority: "high",
-                category: "Digital Infrastructure"
+                department: "WCDD",
+                status: "WCDD has decided to avail the services of Martha Farrell Foundation for developing the training modules and has asked the Foundation to submit the proposal for the same.",
+                remarks: "Martha Farrell with submit a proposal to WCDD for developing the training modules",
+                from: "",
+                to: "",
+                startDate: "2025-08-06",
+                deliveryDate: "",
+                progressDetails: "",
+                progressDate: "",
+                priority: "auto",
+                pendingWith: "Martha Farrell Foundation",
+                nextStep: ""
             },
             {
                 id: 33,
-                department: "C&ID",
-                defaultStatus: "Innovation challenge launch preparations underway.",
-                defaultRemarks: "Launch event planned for September 20",
-                from: "C&ID",
-                to: "Event Team",
-                startDate: "2025-09-04",
-                deliveryDate: "2025-09-20",
-                priority: "medium",
-                category: "Innovation Hub"
+                department: "WCDD",
+                status: "Integration Plan - It has been decided to make it phase wise beginning with Children then adolescents and then women. PMU has shared an updated framework for children's integration plan with WCDD. On the plan of action there would be 2 levels of consultation - one FGD with the existing set of children in the CCIs and two a workshop with children who have already left the CCIs over the last 2 - 3 years. DCPOs would support in tracking them. Proposal from TISS received but it needs to be revised.",
+                remarks: "TISS proposal needs revision",
+                from: "",
+                to: "",
+                startDate: "2025-08-06",
+                deliveryDate: "",
+                progressDetails: "",
+                progressDate: "",
+                priority: "auto",
+                pendingWith: "TISS",
+                nextStep: ""
             },
             {
                 id: 34,
-                department: "DIT",
-                defaultStatus: "Digital readiness training implementation plan being finalized.",
-                defaultRemarks: "Plan to be submitted to PMU by September 10",
-                from: "DIT",
-                to: "PMU",
-                startDate: "2025-09-05",
-                deliveryDate: "2025-09-10",
-                priority: "high",
-                category: "Digital Readiness"
+                department: "WCDD",
+                status: "Partnership with UNICEF - discussions ongoing",
+                remarks: "",
+                from: "",
+                to: "",
+                startDate: "2025-08-14",
+                deliveryDate: "",
+                progressDetails: "",
+                progressDate: "",
+                priority: "auto",
+                pendingWith: "WCDD & UNICEF",
+                nextStep: ""
             }
         ];
-        // Utility function to show status messages
-        function showStatusMessage(message, type = 'success') {
-            const container = document.getElementById('statusMessages');
-            const messageDiv = document.createElement('div');
-            messageDiv.className = `status-message status-${type}`;
-            messageDiv.textContent = message;
-            container.appendChild(messageDiv);
-            setTimeout(() => {
-                if (messageDiv.parentNode) {
-                    messageDiv.parentNode.removeChild(messageDiv);
-                }
-            }, 5000);
-        }
-        // Tab switching function
-        function switchTab(tabName) {
-            document.querySelectorAll('.nav-tab').forEach(tab => tab.classList.remove('active'));
-            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
-            event.target.classList.add('active');
-            document.getElementById(tabName + 'Tab').classList.add('active');
-            activeTab = tabName;
-            if (tabName === 'tasks') {
-                renderTasks();
-                updateStats();
-            } else if (tabName === 'meetings') {
-                renderMeetings();
-                updateMeetingInterface();
-            }
-        }
-        // Meeting Functions
-        function renderMeetings(meetingsToRender = meetings) {
-            const container = document.getElementById('meetingsContainer');
-            const emptyState = document.getElementById('meetingEmptyState');
-            if (meetingsToRender.length === 0) {
-                container.innerHTML = '';
-                emptyState.style.display = 'block';
-                return;
-            }
-            emptyState.style.display = 'none';
-            container.innerHTML = meetingsToRender.map(meeting => {
-                const meetingDate = new Date(meeting.date);
-                const formattedDate = meetingDate.toLocaleDateString('en-US', {
-                    weekday: 'long',
-                    year: 'numeric',
-                    month: 'long',
-                    day: 'numeric'
-                });
-                const formattedTime = meetingDate.toLocaleTimeString('en-US', {
-                    hour: '2-digit',
-                    minute: '2-digit'
-                });
-                let actionButtons = '';
-                if (hasPermission('edit')) {
-                    actionButtons += `<button class="btn btn-sm" onclick="editMeeting('${meeting.id}')">✏️ Edit</button>`;
-                }
-                if (hasPermission('delete')) {
-                    actionButtons += `<button class="btn btn-danger btn-sm" onclick="deleteMeeting('${meeting.id}')">🗑️ Delete</button>`;
-                }
-                return `
-                    <div class="meeting-card">
-                        <div class="meeting-header">
-                            <div>
-                                <div class="meeting-title">${meeting.title}</div>
-                                <div class="meeting-date">${formattedDate} at ${formattedTime}</div>
-                            </div>
-                            <div class="actions">${actionButtons}</div>
-                        </div>
-                        <div class="meeting-section">
-                            <h4>Departments: <span class="badge badge-dept">${meeting.departments}</span></h4>
-                            <h4>Chairperson: ${meeting.chairperson}</h4>
-                        </div>
-                        <div class="meeting-section">
-                            <h4>Attendees</h4>
-                            <p>${meeting.attendees}</p>
-                        </div>
-                        <div class="meeting-section">
-                            <h4>Meeting Objective</h4>
-                            <p>${meeting.objective}</p>
-                        </div>
-                        <div class="meeting-section">
-                            <h4>Key Discussion Points</h4>
-                            <p>${meeting.discussion}</p>
-                        </div>
-                        <div class="meeting-section">
-                            <h4>Decisions Made</h4>
-                            <p>${meeting.decisions}</p>
-                        </div>
-                        <div class="meeting-section">
-                            <h4>Action Items</h4>
-                            <p style="white-space: pre-line;">${meeting.actionItems}</p>
-                        </div>
-                        <div class="meeting-section">
-                            <h4>Next Steps</h4>
-                            <p>${meeting.nextSteps}</p>
-                        </div>
-                    </div>
-                `;
-            }).join('');
-        }
-        function filterMeetings() {
-            const searchTerm = document.getElementById('meetingSearchInput').value.toLowerCase();
-            const dateFilter = document.getElementById('meetingDateFilter').value;
-            const sortBy = document.getElementById('meetingSortBy').value;
-            let filtered = meetings.filter(meeting => {
-                const matchesSearch = meeting.title.toLowerCase().includes(searchTerm) ||
-                                   meeting.departments.toLowerCase().includes(searchTerm) ||
-                                   meeting.discussion.toLowerCase().includes(searchTerm) ||
-                                   meeting.decisions.toLowerCase().includes(searchTerm);
-                let matchesDate = true;
-                if (dateFilter !== 'all') {
-                    const meetingDate = new Date(meeting.date);
-                    const now = new Date();
-                    switch(dateFilter) {
-                        case 'thisWeek':
-                            const weekStart = new Date(now.setDate(now.getDate() - now.getDay()));
-                            const weekEnd = new Date(now.setDate(weekStart.getDate() + 6));
-                            matchesDate = meetingDate >= weekStart && meetingDate <= weekEnd;
-                            break;
-                        case 'thisMonth':
-                            matchesDate = meetingDate.getMonth() === now.getMonth() &&
-                                        meetingDate.getFullYear() === now.getFullYear();
-                            break;
-                        case 'lastMonth':
-                            const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1);
-                            matchesDate = meetingDate.getMonth() === lastMonth.getMonth() &&
-                                        meetingDate.getFullYear() === lastMonth.getFullYear();
-                            break;
-                    }
-                }
-                return matchesSearch && matchesDate;
-            });
-            filtered.sort((a, b) => {
-                if (sortBy === 'date') {
-                    return new Date(b.date) - new Date(a.date);
-                }
-                if (sortBy === 'title') {
-                    return a.title.localeCompare(b.title);
-                }
-                return 0;
-            });
-            renderMeetings(filtered);
-        }
-        function showAddMeetingModal() {
-            if (!checkPermission('add')) return;
-            currentEditMeetingId = null;
-            document.getElementById('meetingModalTitle').textContent = 'Add New Meeting';
-            clearMeetingForm();
-            const now = new Date();
-            now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
-            document.getElementById('meetingDate').value = now.toISOString().slice(0, 16);
-            document.getElementById('meetingModal').classList.add('show');
-        }
-        function editMeeting(id) {
-            if (!checkPermission('edit')) return;
-            const meeting = meetings.find(m => m.id === id);
-            if (!meeting) return;
-            currentEditMeetingId = id;
-            document.getElementById('meetingModalTitle').textContent = 'Edit Meeting';
-            document.getElementById('meetingTitle').value = meeting.title;
-            document.getElementById('meetingDate').value = meeting.date;
-            document.getElementById('meetingDepartments').value = meeting.departments;
-            document.getElementById('meetingChairperson').value = meeting.chairperson;
-            document.getElementById('meetingAttendees').value = meeting.attendees;
-            document.getElementById('meetingObjective').value = meeting.objective;
-            document.getElementById('meetingDiscussion').value = meeting.discussion;
-            document.getElementById('meetingDecisions').value = meeting.decisions;
-            document.getElementById('meetingActionItems').value = meeting.actionItems;
-            document.getElementById('meetingNextSteps').value = meeting.nextSteps;
-            document.getElementById('meetingModal').classList.add('show');
-        }
-        function deleteMeeting(id) {
-            if (!checkPermission('delete')) return;
-            if (confirm('Are you sure you want to delete this meeting record?')) {
-                db.collection('meetings').doc(id).delete()
-                    .then(() => {
-                        showStatusMessage('Meeting deleted successfully!');
-                        filterMeetings();
-                    })
-                    .catch(error => {
-                        console.error("Error deleting meeting:", error);
-                        showStatusMessage("Failed to delete meeting", 'error');
-                    });
-            }
-        }
-        function saveMeeting() {
-            const isEditing = currentEditMeetingId !== null;
-            const requiredPermission = isEditing ? 'edit' : 'add';
-            if (!checkPermission(requiredPermission)) return;
-            const formData = {
-                title: document.getElementById('meetingTitle').value.trim(),
-                date: document.getElementById('meetingDate').value,
-                departments: document.getElementById('meetingDepartments').value.trim(),
-                chairperson: document.getElementById('meetingChairperson').value.trim(),
-                attendees: document.getElementById('meetingAttendees').value.trim(),
-                objective: document.getElementById('meetingObjective').value.trim(),
-                discussion: document.getElementById('meetingDiscussion').value.trim(),
-                decisions: document.getElementById('meetingDecisions').value.trim(),
-                actionItems: document.getElementById('meetingActionItems').value.trim(),
-                nextSteps: document.getElementById('meetingNextSteps').value.trim(),
-                userId: auth.currentUser.uid,
-                lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
-            };
-            if (!formData.title || !formData.date || !formData.attendees || !formData.objective) {
-                showStatusMessage('Please fill in all required fields (Title, Date, Attendees, Objective)', 'error');
-                return;
-            }
-            try {
-                if (currentEditMeetingId) {
-                    db.collection('meetings').doc(currentEditMeetingId).update(formData)
-                        .then(() => {
-                            showStatusMessage('Meeting updated successfully!');
-                            hideMeetingModal();
-                            filterMeetings();
-                        });
-                } else {
-                    db.collection('meetings').add(formData)
-                        .then(() => {
-                            showStatusMessage('Meeting added successfully!');
-                            hideMeetingModal();
-                            filterMeetings();
-                        });
-                }
-            } catch (error) {
-                console.error('Error saving meeting:', error);
-                showStatusMessage('Error saving meeting. Please try again.', 'error');
-            }
-        }
-        function hideMeetingModal() {
-            document.getElementById('meetingModal').classList.remove('show');
-            clearMeetingForm();
-        }
-        function clearMeetingForm() {
-            document.getElementById('meetingTitle').value = '';
-            document.getElementById('meetingDate').value = '';
-            document.getElementById('meetingDepartments').value = '';
-            document.getElementById('meetingChairperson').value = '';
-            document.getElementById('meetingAttendees').value = '';
-            document.getElementById('meetingObjective').value = '';
-            document.getElementById('meetingDiscussion').value = '';
-            document.getElementById('meetingDecisions').value = '';
-            document.getElementById('meetingActionItems').value = '';
-            document.getElementById('meetingNextSteps').value = '';
-        }
-        function updateMeetingInterface() {
-            const addMeetingBtn = document.getElementById('addMeetingBtn');
-            if (hasPermission('add')) {
-                addMeetingBtn.classList.remove('hidden');
-            } else {
-                addMeetingBtn.classList.add('hidden');
-            }
-        }
+
+        let currentEditId = null;
+
         // Password utilities
         function validatePassword(password) {
             const minLength = 6;
             const hasUpper = /[A-Z]/.test(password);
             const hasLower = /[a-z]/.test(password);
             const hasNumber = /\d/.test(password);
+            
             if (password.length < minLength) {
                 return { valid: false, message: 'Password must be at least 6 characters long' };
             }
+            
             let strength = 'weak';
             let score = 0;
+            
             if (password.length >= 8) score++;
             if (hasUpper) score++;
             if (hasLower) score++;
             if (hasNumber) score++;
+            
             if (score >= 3) strength = 'strong';
             else if (score >= 2) strength = 'medium';
+            
             return { valid: true, strength, score };
         }
+
         function checkPasswordStrength() {
             const password = document.getElementById('newPassword').value;
             const strengthDiv = document.getElementById('passwordStrength');
+            
             if (!password) {
                 strengthDiv.innerHTML = '';
                 return;
             }
+            
             const validation = validatePassword(password);
+            
             if (!validation.valid) {
                 strengthDiv.innerHTML = `<span class="strength-weak">${validation.message}</span>`;
                 return;
             }
+            
             const strengthClass = `strength-${validation.strength}`;
             const strengthText = validation.strength.charAt(0).toUpperCase() + validation.strength.slice(1);
+            
             strengthDiv.innerHTML = `<span class="${strengthClass}">Password strength: ${strengthText}</span>`;
         }
+
         // Authentication functions
         function login() {
-            const username = document.getElementById('loginUsername').value.trim();
+            const email = document.getElementById('loginEmail').value.trim();
             const password = document.getElementById('loginPassword').value;
-            if (!username || !password) {
-                showError('loginError', 'Please enter both username and password');
+            
+            if (!email || !password) {
+                showError('loginError', 'Please enter both email and password');
                 return;
             }
-            auth.signInWithEmailAndPassword(`${username}@sikkiminspires.in`, password)
-                .then((userCredential) => {
-                    const user = userCredential.user;
-                    return db.collection('users').doc(user.uid).get();
-                })
-                .then((userDoc) => {
-                    if (!userDoc.exists) {
-                        throw new Error("User not found in database");
-                    }
-                    const userData = userDoc.data();
-                    currentUser.username = username;
-                    currentUser.uid = userCredential.user.uid;
-                    currentUser.role = userData.role;
-                    currentUser.name = userData.name || username;
-                    currentUser.permissions = roleConfig[userData.role].permissions;
-                    updateUserInterface();
-                    document.getElementById('loginOverlay').style.display = 'none';
-                    initializeApp();
-                    showStatusMessage(`Welcome, ${currentUser.name}! You are logged in as ${roleConfig[currentUser.role].name}.`);
-                })
-                .catch((error) => {
-                    console.error("Login error:", error);
-                    showError('loginError', 'Invalid username or password');
-                });
+            
+            const user = userDatabase[email];
+            if (!user || user.password !== password) {
+                showError('loginError', 'Invalid email or password');
+                return;
+            }
+            
+            // Successful login
+            currentUser.email = email;
+            currentUser.role = user.role;
+            currentUser.name = user.name;
+            currentUser.permissions = roleConfig[user.role].permissions;
+            
+            // Update last login
+            userDatabase[email].lastLogin = new Date().toISOString();
+            
+            // Update UI
+            updateUserInterface();
+            
+            // Hide login overlay
+            document.getElementById('loginOverlay').style.display = 'none';
+            
+            // Initialize the app
+            initializeApp();
         }
+
         function logout() {
             if (confirm('Are you sure you want to logout?')) {
-                auth.signOut()
-                    .then(() => {
-                        currentUser = { username: null, role: null, name: '', permissions: {} };
-                        document.getElementById('loginUsername').value = '';
-                        document.getElementById('loginPassword').value = '';
-                        hideError('loginError');
-                        hideSettingsMenu();
-                        document.getElementById('loginOverlay').style.display = 'flex';
-                    })
-                    .catch((error) => {
-                        console.error("Logout error:", error);
-                        showStatusMessage("Error during logout", 'error');
-                    });
+                currentUser = { email: null, role: null, name: '', permissions: {} };
+                
+                // Reset login form
+                document.getElementById('loginEmail').value = '';
+                document.getElementById('loginPassword').value = '';
+                hideError('loginError');
+                
+                // Hide settings menu
+                hideSettingsMenu();
+                
+                // Show login overlay
+                document.getElementById('loginOverlay').style.display = 'flex';
             }
         }
+
         // Settings menu functions
         function toggleSettingsMenu() {
             const menu = document.getElementById('settingsMenu');
             menu.classList.toggle('show');
         }
+
         function hideSettingsMenu() {
             document.getElementById('settingsMenu').classList.remove('show');
         }
+
         // Change password functions
         function showChangePasswordModal() {
             hideSettingsMenu();
             document.getElementById('changePasswordModal').classList.add('show');
+            // Clear form
             document.getElementById('currentPassword').value = '';
             document.getElementById('newPassword').value = '';
             document.getElementById('confirmPassword').value = '';
@@ -1799,72 +1797,268 @@
             hideError('passwordError');
             hideSuccess('passwordSuccess');
         }
+
         function hideChangePasswordModal() {
             document.getElementById('changePasswordModal').classList.remove('show');
         }
+
         function changePassword() {
             const currentPassword = document.getElementById('currentPassword').value;
             const newPassword = document.getElementById('newPassword').value;
             const confirmPassword = document.getElementById('confirmPassword').value;
+            
+            // Validate current password
+            if (userDatabase[currentUser.email].password !== currentPassword) {
+                showError('passwordError', 'Current password is incorrect');
+                return;
+            }
+            
+            // Validate new password
             const validation = validatePassword(newPassword);
             if (!validation.valid) {
                 showError('passwordError', validation.message);
                 return;
             }
+            
+            // Check password confirmation
             if (newPassword !== confirmPassword) {
                 showError('passwordError', 'New passwords do not match');
                 return;
             }
-            const credential = firebase.auth.EmailAuthProvider.credential(
-                `${currentUser.username}@sikkiminspires.in`,
-                currentPassword
-            );
-            auth.currentUser.reauthenticateWithCredential(credential)
-                .then(() => {
-                    return auth.currentUser.updatePassword(newPassword);
-                })
-                .then(() => {
-                    showSuccess('passwordSuccess', 'Password changed successfully!');
-                    setTimeout(() => {
-                        hideChangePasswordModal();
-                    }, 2000);
-                })
-                .catch((error) => {
-                    console.error("Password change error:", error);
-                    showError('passwordError', error.message || 'Failed to change password');
-                });
+            
+            // Check if new password is different
+            if (newPassword === currentPassword) {
+                showError('passwordError', 'New password must be different from current password');
+                return;
+            }
+            
+            // Update password
+            userDatabase[currentUser.email].password = newPassword;
+            
+            showSuccess('passwordSuccess', 'Password changed successfully!');
+            
+            // Clear form after 2 seconds and close modal
+            setTimeout(() => {
+                hideChangePasswordModal();
+            }, 2000);
         }
+
+        // Report functions
+        function showReportModal() {
+            if (!checkPermission('generateReports')) return;
+            
+            hideSettingsMenu();
+            document.getElementById('reportModal').classList.add('show');
+            // Set default dates
+            const today = new Date();
+            const lastWeek = new Date();
+            lastWeek.setDate(today.getDate() - 7);
+            
+            document.getElementById('startDate').value = lastWeek.toISOString().split('T')[0];
+            document.getElementById('endDate').value = today.toISOString().split('T')[0];
+        }
+
+        function hideReportModal() {
+            document.getElementById('reportModal').classList.remove('show');
+        }
+
+        function generateReport() {
+            const reportType = document.getElementById('reportType').value;
+            const startDate = document.getElementById('startDate').value;
+            const endDate = document.getElementById('endDate').value;
+            
+            if (!startDate || !endDate) {
+                alert('Please select both start and end dates');
+                return;
+            }
+            
+            // Get selected departments
+            const selectedDepartments = Array.from(document.querySelectorAll('input[name="department"]:checked'))
+                .map(el => el.value);
+            
+            if (selectedDepartments.length === 0) {
+                alert('Please select at least one department');
+                return;
+            }
+            
+            // Filter tasks based on date range and departments
+            const filteredTasks = tasks.filter(task => {
+                const taskDate = task.startDate || task.progressDate || task.deliveryDate;
+                if (!taskDate) return false;
+                
+                const taskDateObj = new Date(taskDate);
+                const start = new Date(startDate);
+                const end = new Date(endDate);
+                end.setDate(end.getDate() + 1); // Include end date
+                
+                return taskDateObj >= start && 
+                       taskDateObj <= end &&
+                       selectedDepartments.includes(task.department);
+            });
+            
+            if (filteredTasks.length === 0) {
+                alert('No tasks found for the selected criteria');
+                return;
+            }
+            
+            if (reportType === 'excel') {
+                generateExcelReport(filteredTasks);
+            } else {
+                generateWordReport(filteredTasks);
+            }
+            
+            hideReportModal();
+        }
+
+        function generateExcelReport(tasks) {
+            // Prepare data for Excel
+            const excelData = tasks.map(task => {
+                return {
+                    "ID": task.id,
+                    "Department": task.department,
+                    "Status": task.status,
+                    "Remarks": task.remarks,
+                    "From": task.from,
+                    "To": task.to,
+                    "Start Date": task.startDate,
+                    "Delivery Date": task.deliveryDate,
+                    "Priority": getTaskPriority(task),
+                    "Progress Details": task.progressDetails,
+                    "Progress Date": task.progressDate,
+                    "Pending With": task.pendingWith,
+                    "Next Step": task.nextStep
+                };
+            });
+            
+            // Create workbook
+            const wb = XLSX.utils.book_new();
+            const ws = XLSX.utils.json_to_sheet(excelData);
+            XLSX.utils.book_append_sheet(wb, ws, "Tasks");
+            
+            // Generate file name with date range
+            const formattedStart = startDate.split('-').reverse().join('-');
+            const formattedEnd = endDate.split('-').reverse().join('-');
+            const fileName = `Sikkim_INSPIRES_Report_${formattedStart}_to_${formattedEnd}.xlsx`;
+            
+            // Export to Excel
+            XLSX.writeFile(wb, fileName);
+        }
+
+        function generateWordReport(tasks) {
+            // Create HTML content for the report
+            let htmlContent = `
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <title>Sikkim INSPIRES Report</title>
+                    <style>
+                        body { font-family: Arial, sans-serif; }
+                        h1 { color: #1e40af; }
+                        .report-header { margin-bottom: 20px; }
+                        .report-details { margin-bottom: 30px; }
+                        table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+                        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+                        th { background-color: #f2f2f2; }
+                        .task-id { width: 5%; }
+                        .task-dept { width: 10%; }
+                        .task-status { width: 25%; }
+                        .task-priority { width: 10%; }
+                    </style>
+                </head>
+                <body>
+                    <h1>Sikkim INSPIRES Programme Report</h1>
+                    <div class="report-header">
+                        <p><strong>Generated:</strong> ${new Date().toLocaleString()}</p>
+                        <p><strong>Date Range:</strong> ${document.getElementById('startDate').value} to ${document.getElementById('endDate').value}</p>
+                    </div>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th class="task-id">ID</th>
+                                <th class="task-dept">Department</th>
+                                <th class="task-status">Status</th>
+                                <th>Remarks</th>
+                                <th>Priority</th>
+                                <th>Progress</th>
+                                <th>Next Step</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+            `;
+            
+            // Add task rows
+            tasks.forEach(task => {
+                htmlContent += `
+                    <tr>
+                        <td>${task.id}</td>
+                        <td>${task.department}</td>
+                        <td>${task.status}</td>
+                        <td>${task.remarks || ''}</td>
+                        <td>${getTaskPriority(task)}</td>
+                        <td>${task.progressDetails || ''}</td>
+                        <td>${task.nextStep || ''}</td>
+                    </tr>
+                `;
+            });
+            
+            htmlContent += `
+                        </tbody>
+                    </table>
+                </body>
+                </html>
+            `;
+            
+            // Create a Blob and download
+            const blob = new Blob([htmlContent], { type: 'application/msword' });
+            const link = document.createElement('a');
+            
+            // Generate file name with date range
+            const formattedStart = document.getElementById('startDate').value.split('-').reverse().join('-');
+            const formattedEnd = document.getElementById('endDate').value.split('-').reverse().join('-');
+            const fileName = `Sikkim_INSPIRES_Report_${formattedStart}_to_${formattedEnd}.doc`;
+            
+            link.href = URL.createObjectURL(blob);
+            link.download = fileName;
+            link.click();
+            URL.revokeObjectURL(link.href);
+        }
+
         // Utility functions for messages
         function showError(elementId, message) {
             const element = document.getElementById(elementId);
             element.textContent = message;
             element.style.display = 'block';
         }
+
         function hideError(elementId) {
             const element = document.getElementById(elementId);
             element.style.display = 'none';
         }
+
         function showSuccess(elementId, message) {
             const element = document.getElementById(elementId);
             element.textContent = message;
             element.style.display = 'block';
         }
+
         function hideSuccess(elementId) {
             const element = document.getElementById(elementId);
             element.style.display = 'none';
         }
+
         // Permission Management Functions
         function hasPermission(action) {
             return currentUser.permissions && currentUser.permissions[action] === true;
         }
+
         function checkPermission(action) {
             if (!hasPermission(action)) {
                 showPermissionWarning();
-                showStatusMessage(`You don't have permission to ${action} items. Please contact your administrator.`, 'error');
                 return false;
             }
             return true;
         }
+
         function showPermissionWarning() {
             const warning = document.getElementById('permissionWarning');
             warning.style.display = 'block';
@@ -1872,73 +2066,81 @@
                 warning.style.display = 'none';
             }, 3000);
         }
+
         function updateUserInterface() {
+            // Update user info display
             const roleBadge = document.getElementById('userRoleBadge');
             const userName = document.getElementById('userName');
+            
             roleBadge.textContent = roleConfig[currentUser.role].name;
             roleBadge.className = `role-badge ${roleConfig[currentUser.role].badge}`;
-            userName.textContent = currentUser.name;
+            userName.textContent = userDatabase[currentUser.email].name;
+            
+            // Update button visibility based on permissions
             const addTaskBtn = document.getElementById('addTaskBtn');
+            
             if (hasPermission('add')) {
                 addTaskBtn.classList.remove('hidden');
             } else {
                 addTaskBtn.classList.add('hidden');
             }
-            if (activeTab === 'tasks') {
-                renderTasks();
-                updateStats();
-            } else if (activeTab === 'meetings') {
-                updateMeetingInterface();
-                filterMeetings();
-            }
+            
+            // Update table rendering for action buttons
+            filterTasks();
         }
+
         function initializeApp() {
-            if (activeTab === 'tasks') {
-                renderTasks();
-                updateStats();
-            } else if (activeTab === 'meetings') {
-                renderMeetings();
-                updateMeetingInterface();
-            }
-            loadTasks();
-            loadMeetings();
+            renderTasks();
+            updateStats();
         }
-        // Task management functions
+
+        // Utility functions
         function getTaskPriority(task) {
+            // If priority is manually set (not "auto"), use that
             if (task.priority && task.priority !== "auto") {
                 return task.priority;
             }
+            
+            // Otherwise calculate based on delivery date
             if (!task.deliveryDate) return 'low';
             const today = new Date();
             const delivery = new Date(task.deliveryDate);
             const daysRemaining = Math.ceil((delivery - today) / (1000 * 60 * 60 * 24));
+            
             if (daysRemaining < 0) return 'overdue';
             if (daysRemaining <= 3) return 'urgent';
             if (daysRemaining <= 7) return 'high';
             return 'medium';
         }
+
         function getDaysRemaining(deliveryDate) {
             if (!deliveryDate) return null;
             const today = new Date();
             const delivery = new Date(deliveryDate);
             return Math.ceil((delivery - today) / (1000 * 60 * 60 * 24));
         }
+
         function formatDate(dateStr) {
             if (!dateStr) return 'N/A';
             return new Date(dateStr).toLocaleDateString();
         }
+
         function renderTasks(tasksToRender = tasks) {
             const tbody = document.getElementById('tasksTableBody');
             const emptyState = document.getElementById('emptyState');
+            
             if (tasksToRender.length === 0) {
                 tbody.innerHTML = '';
                 emptyState.style.display = 'block';
                 return;
             }
+            
             emptyState.style.display = 'none';
+            
             tbody.innerHTML = tasksToRender.map(task => {
                 const priority = getTaskPriority(task);
                 const daysRemaining = getDaysRemaining(task.deliveryDate);
+                
                 let timelineHtml = `<div class="text-xs text-gray">Start: ${formatDate(task.startDate)}</div>`;
                 if (task.deliveryDate) {
                     timelineHtml += `<div class="text-xs">Due: ${formatDate(task.deliveryDate)}</div>`;
@@ -1948,12 +2150,15 @@
                     const timeText = daysRemaining < 0 ? `${Math.abs(daysRemaining)} days overdue` : `${daysRemaining} days left`;
                     timelineHtml += `<div class="text-xs font-medium ${timeClass}">${timeText}</div>`;
                 }
+                
                 let responsibilityHtml = '';
                 if (task.from) responsibilityHtml += `<div class="text-xs"><span class="text-gray">From:</span> ${task.from}</div>`;
                 if (task.to) responsibilityHtml += `<div class="text-xs"><span class="text-gray">To:</span> ${task.to}</div>`;
+                
                 let detailsHtml = `<div class="text-gray-900">${task.status}</div>`;
                 if (task.remarks) detailsHtml += `<div class="text-xs text-gray mt-1"><strong>Remarks:</strong> ${task.remarks}</div>`;
                 if (task.nextStep) detailsHtml += `<div class="text-xs text-green mt-1"><strong>Next Step:</strong> ${task.nextStep}</div>`;
+                
                 let progressHtml = '';
                 if (task.progressDetails) {
                     progressHtml += `<div class="text-xs text-blue"><strong>Details:</strong> ${task.progressDetails}</div>`;
@@ -1964,39 +2169,55 @@
                 if (!progressHtml) {
                     progressHtml = '<div class="text-xs text-gray">No progress updates</div>';
                 }
-                const priorityDisplay = task.priority === 'auto' ?
-                    `${priority.charAt(0).toUpperCase() + priority.slice(1)} (Auto)` :
+                
+                const priorityDisplay = task.priority === 'auto' ? 
+                    `${priority.charAt(0).toUpperCase() + priority.slice(1)} (Auto)` : 
                     priority.charAt(0).toUpperCase() + priority.slice(1);
+                
+                // Generate action buttons based on permissions
                 let actionButtons = '';
                 if (hasPermission('edit')) {
-                    actionButtons += `<button class="btn btn-sm" onclick="editTask('${task.id}')">✏️</button>`;
+                    actionButtons += `<button class="btn btn-sm" onclick="editTask(${task.id})">✏️</button>`;
                 }
                 if (hasPermission('delete')) {
-                    actionButtons += `<button class="btn btn-danger btn-sm" onclick="deleteTask('${task.id}')">🗑️</button>`;
+                    actionButtons += `<button class="btn btn-danger btn-sm" onclick="deleteTask(${task.id})">🗑️</button>`;
                 }
                 if (!actionButtons) {
                     actionButtons = '<span class="text-xs text-gray">No actions available</span>';
                 }
+                
                 let pendingWithHtml = '';
                 if (task.pendingWith) {
                     pendingWithHtml = `<div class="text-xs"><span class="badge badge-dept">${task.pendingWith}</span></div>`;
                 } else {
                     pendingWithHtml = '<div class="text-xs text-gray">Not specified</div>';
                 }
+                
                 return `
                     <tr>
-                        <td><span class="badge badge-dept">${task.department}</span></td>
+                        <td>
+                            <span class="badge badge-dept">${task.department}</span>
+                        </td>
                         <td>${detailsHtml}</td>
                         <td>${timelineHtml}</td>
                         <td>${responsibilityHtml}</td>
                         <td>${progressHtml}</td>
-                        <td><span class="badge badge-${priority}">${priorityDisplay}</span></td>
+                        <td>
+                            <span class="badge badge-${priority}">
+                                ${priorityDisplay}
+                            </span>
+                        </td>
                         <td>${pendingWithHtml}</td>
-                        <td><div class="actions">${actionButtons}</div></td>
+                        <td>
+                            <div class="actions">
+                                ${actionButtons}
+                            </div>
+                        </td>
                     </tr>
                 `;
             }).join('');
         }
+
         function updateStats() {
             const stats = {
                 total: tasks.length,
@@ -2004,25 +2225,31 @@
                 urgent: tasks.filter(t => getTaskPriority(t) === 'urgent').length,
                 completed: tasks.filter(t => t.status.toLowerCase().includes('completed')).length
             };
+            
             document.getElementById('totalTasks').textContent = stats.total;
             document.getElementById('overdueTasks').textContent = stats.overdue;
             document.getElementById('urgentTasks').textContent = stats.urgent;
             document.getElementById('completedTasks').textContent = stats.completed;
         }
+
         function filterTasks() {
             const searchTerm = document.getElementById('searchInput').value.toLowerCase();
             const departmentFilter = document.getElementById('departmentFilter').value;
             const priorityFilter = document.getElementById('priorityFilter').value;
             const sortBy = document.getElementById('sortBy').value;
+            
             let filtered = tasks.filter(task => {
                 const matchesSearch = task.status.toLowerCase().includes(searchTerm) ||
                                    task.department.toLowerCase().includes(searchTerm) ||
-                                   (task.remarks && task.remarks.toLowerCase().includes(searchTerm)) ||
+                                   task.remarks.toLowerCase().includes(searchTerm) ||
                                    (task.pendingWith && task.pendingWith.toLowerCase().includes(searchTerm));
                 const matchesDepartment = departmentFilter === 'all' || task.department === departmentFilter;
                 const matchesPriority = priorityFilter === 'all' || getTaskPriority(task) === priorityFilter;
+                
                 return matchesSearch && matchesDepartment && matchesPriority;
             });
+
+            // Sort
             filtered.sort((a, b) => {
                 if (sortBy === 'deliveryDate') {
                     if (!a.deliveryDate && !b.deliveryDate) return 0;
@@ -2035,10 +2262,13 @@
                 }
                 return a.id - b.id;
             });
+
             renderTasks(filtered);
         }
+
         function showAddTaskModal() {
             if (!checkPermission('add')) return;
+            
             currentEditId = null;
             document.getElementById('modalTitle').textContent = 'Add New Task';
             clearForm();
@@ -2046,92 +2276,91 @@
             document.getElementById('taskPriority').value = 'auto';
             document.getElementById('taskModal').classList.add('show');
         }
+
         function editTask(id) {
             if (!checkPermission('edit')) return;
+            
             const task = tasks.find(t => t.id === id);
             if (!task) return;
+            
             currentEditId = id;
             document.getElementById('modalTitle').textContent = 'Edit Task';
+            
             document.getElementById('taskDepartment').value = task.department;
             document.getElementById('taskStatus').value = task.status;
-            document.getElementById('taskRemarks').value = task.remarks || '';
-            document.getElementById('taskFrom').value = task.from || '';
-            document.getElementById('taskTo').value = task.to || '';
+            document.getElementById('taskRemarks').value = task.remarks;
+            document.getElementById('taskFrom').value = task.from;
+            document.getElementById('taskTo').value = task.to;
             document.getElementById('taskStartDate').value = task.startDate;
-            document.getElementById('taskDeliveryDate').value = task.deliveryDate || '';
+            document.getElementById('taskDeliveryDate').value = task.deliveryDate;
             document.getElementById('taskPriority').value = task.priority || 'auto';
-            document.getElementById('taskProgress').value = task.progressDetails || '';
-            document.getElementById('taskProgressDate').value = task.progressDate || '';
+            document.getElementById('taskProgress').value = task.progressDetails;
+            document.getElementById('taskProgressDate').value = task.progressDate;
             document.getElementById('taskPendingWith').value = task.pendingWith || '';
-            document.getElementById('taskNextStep').value = task.nextStep || '';
+            document.getElementById('taskNextStep').value = task.nextStep;
+            
             document.getElementById('taskModal').classList.add('show');
         }
+
         function deleteTask(id) {
             if (!checkPermission('delete')) return;
+            
             if (confirm('Are you sure you want to delete this task?')) {
-                db.collection('tasks').doc(id).delete()
-                    .then(() => {
-                        showStatusMessage('Task deleted successfully!');
-                        filterTasks();
-                        updateStats();
-                    })
-                    .catch(error => {
-                        console.error("Error deleting task:", error);
-                        showStatusMessage("Failed to delete task", 'error');
-                    });
+                tasks = tasks.filter(t => t.id !== id);
+                filterTasks();
+                updateStats();
             }
         }
+
         function saveTask() {
             const isEditing = currentEditId !== null;
             const requiredPermission = isEditing ? 'edit' : 'add';
+            
             if (!checkPermission(requiredPermission)) return;
+            
             const formData = {
-                department: document.getElementById('taskDepartment').value.trim(),
-                status: document.getElementById('taskStatus').value.trim(),
-                remarks: document.getElementById('taskRemarks').value.trim(),
-                from: document.getElementById('taskFrom').value.trim(),
-                to: document.getElementById('taskTo').value.trim(),
+                department: document.getElementById('taskDepartment').value,
+                status: document.getElementById('taskStatus').value,
+                remarks: document.getElementById('taskRemarks').value,
+                from: document.getElementById('taskFrom').value,
+                to: document.getElementById('taskTo').value,
                 startDate: document.getElementById('taskStartDate').value,
                 deliveryDate: document.getElementById('taskDeliveryDate').value,
                 priority: document.getElementById('taskPriority').value,
-                progressDetails: document.getElementById('taskProgress').value.trim(),
+                progressDetails: document.getElementById('taskProgress').value,
                 progressDate: document.getElementById('taskProgressDate').value,
-                pendingWith: document.getElementById('taskPendingWith').value.trim(),
-                nextStep: document.getElementById('taskNextStep').value.trim(),
-                userId: auth.currentUser.uid,
-                lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
+                pendingWith: document.getElementById('taskPendingWith').value,
+                nextStep: document.getElementById('taskNextStep').value
             };
+            
             if (!formData.department || !formData.status || !formData.startDate) {
-                showStatusMessage('Please fill in all required fields (Department, Status, Start Date)', 'error');
+                alert('Please fill in all required fields (Department, Status, Start Date)');
                 return;
             }
-            try {
-                if (currentEditId) {
-                    db.collection('tasks').doc(currentEditId).update(formData)
-                        .then(() => {
-                            showStatusMessage('Task updated successfully!');
-                            hideModal();
-                            filterTasks();
-                            updateStats();
-                        });
-                } else {
-                    db.collection('tasks').add(formData)
-                        .then(() => {
-                            showStatusMessage('Task added successfully!');
-                            hideModal();
-                            filterTasks();
-                            updateStats();
-                        });
-                }
-            } catch (error) {
-                console.error('Error saving task:', error);
-                showStatusMessage('Error saving task. Please try again.', 'error');
+            
+            if (currentEditId) {
+                // Edit existing task
+                const taskIndex = tasks.findIndex(t => t.id === currentEditId);
+                tasks[taskIndex] = { ...tasks[taskIndex], ...formData };
+            } else {
+                // Add new task
+                const newTask = {
+                    ...formData,
+                    id: Math.max(...tasks.map(t => t.id), 0) + 1
+                };
+                tasks.push(newTask);
             }
+            
+            hideModal();
+            filterTasks();
+            updateStats();
         }
+
         function hideModal() {
             document.getElementById('taskModal').classList.remove('show');
             clearForm();
         }
+
         function clearForm() {
             document.getElementById('taskDepartment').value = '';
             document.getElementById('taskStatus').value = '';
@@ -2146,446 +2375,38 @@
             document.getElementById('taskPendingWith').value = '';
             document.getElementById('taskNextStep').value = '';
         }
-        // Load tasks from Firestore
-        function loadTasks() {
-            if (!auth.currentUser) return;
-            db.collection('tasks')
-                .where('userId', '==', auth.currentUser.uid)
-                .get()
-                .then((snapshot) => {
-                    tasks = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                    renderTasks();
-                    updateStats();
-                })
-                .catch((error) => {
-                    console.error("Error loading tasks:", error);
-                    showStatusMessage("Error loading tasks. Please refresh.", 'error');
-                });
-        }
-        // Load meetings from Firestore
-        function loadMeetings() {
-            if (!auth.currentUser) return;
-            db.collection('meetings')
-                .where('userId', '==', auth.currentUser.uid)
-                .get()
-                .then((snapshot) => {
-                    meetings = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                    renderMeetings();
-                })
-                .catch((error) => {
-                    console.error("Error loading meetings:", error);
-                    showStatusMessage("Error loading meetings. Please refresh.", 'error');
-                });
-        }
-        // Report Generation
-        class ReportGenerator {
-            constructor() {
-                this.docx = window.docx;
-                this.xlsx = window.XLSX;
-                this.emailjs = window.emailjs;
-            }
-            async generateWordReport(data, reportType = 'tasks', fileName = `report-${Date.now()}.docx`) {
-                try {
-                    const { Document, Paragraph, TextRun, HeadingLevel, Packer } = this.docx;
-                    const doc = new Document({
-                        sections: [{
-                            properties: {},
-                            children: [
-                                new Paragraph({
-                                    text: "Sikkim INSPIRES Programme Report",
-                                    heading: HeadingLevel.HEADING_1,
-                                    spacing: { after: 200 }
-                                }),
-                                new Paragraph({
-                                    text: `Generated on: ${new Date().toLocaleString()}`,
-                                    spacing: { after: 400 }
-                                }),
-                                ...this.getReportContent(data, reportType)
-                            ]
-                        }]
-                    });
-                    const blob = await Packer.toBlob(doc);
-                    this.downloadBlob(blob, fileName);
-                    return true;
-                } catch (error) {
-                    console.error("Word report generation failed:", error);
-                    showStatusMessage("Failed to generate Word report", 'error');
-                    return false;
-                }
-            }
-            getReportContent(data, reportType) {
-                if (reportType === 'tasks') {
-                    return [
-                        new Paragraph({
-                            text: "Tasks Report",
-                            heading: HeadingLevel.HEADING_2
-                        }),
-                        ...data.map(task => new Paragraph({
-                            children: [
-                                new TextRun({
-                                    text: `${task.department}: ${task.status}`,
-                                    bold: true
-                                }),
-                                new TextRun({
-                                    text: `\nDelivery Date: ${task.deliveryDate || 'N/A'}`,
-                                    break: 1
-                                }),
-                                new TextRun({
-                                    text: `\nPriority: ${this.getPriorityDisplay(task)}`,
-                                    break: 1
-                                }),
-                                new TextRun({
-                                    text: `\nProgress: ${task.progressDetails || 'No progress updates'}`,
-                                    break: 1
-                                })
-                            ],
-                            spacing: { after: 200 }
-                        }))
-                    ];
-                } else {
-                    return [
-                        new Paragraph({
-                            text: "Meetings Report",
-                            heading: HeadingLevel.HEADING_2
-                        }),
-                        ...data.map(meeting => new Paragraph({
-                            children: [
-                                new TextRun({
-                                    text: meeting.title,
-                                    bold: true
-                                }),
-                                new TextRun({
-                                    text: `\nDate: ${new Date(meeting.date).toLocaleString()}`,
-                                    break: 1
-                                }),
-                                new TextRun({
-                                    text: `\nObjective: ${meeting.objective}`,
-                                    break: 1
-                                }),
-                                new TextRun({
-                                    text: `\nKey Decisions: ${meeting.decisions || 'None recorded'}`,
-                                    break: 1
-                                })
-                            ],
-                            spacing: { after: 200 }
-                        }))
-                    ];
-                }
-            }
-            getPriorityDisplay(task) {
-                const priority = getTaskPriority(task);
-                return task.priority === 'auto' ?
-                    `${priority.charAt(0).toUpperCase() + priority.slice(1)} (Auto)` :
-                    priority.charAt(0).toUpperCase() + priority.slice(1);
-            }
-            async generateExcelReport(data, reportType = 'tasks', fileName = `report-${Date.now()}.xlsx`) {
-                try {
-                    let worksheet;
-                    if (reportType === 'tasks') {
-                        const formattedData = data.map(task => ({
-                            "Department": task.department,
-                            "Status": task.status,
-                            "Start Date": task.startDate,
-                            "Delivery Date": task.deliveryDate || 'N/A',
-                            "Priority": this.getPriorityDisplay(task),
-                            "Progress": task.progressDetails || 'No progress',
-                            "Pending With": task.pendingWith || 'N/A',
-                            "Next Step": task.nextStep || 'N/A'
-                        }));
-                        worksheet = this.xlsx.utils.json_to_sheet(formattedData);
-                    } else {
-                        const formattedData = data.map(meeting => ({
-                            "Title": meeting.title,
-                            "Date": new Date(meeting.date).toLocaleString(),
-                            "Departments": meeting.departments,
-                            "Chairperson": meeting.chairperson,
-                            "Objective": meeting.objective,
-                            "Key Decisions": meeting.decisions || 'None',
-                            "Action Items": meeting.actionItems || 'None'
-                        }));
-                        worksheet = this.xlsx.utils.json_to_sheet(formattedData);
-                    }
-                    const workbook = this.xlsx.utils.book_new();
-                    this.xlsx.utils.book_append_sheet(workbook, worksheet, "Report");
-                    this.xlsx.writeFile(workbook, fileName);
-                    return true;
-                } catch (error) {
-                    console.error("Excel report generation failed:", error);
-                    showStatusMessage("Failed to generate Excel report", 'error');
-                    return false;
-                }
-            }
-            async sendEmailReport(data, reportType, recipientEmail, subject = "Sikkim INSPIRES Report") {
-                try {
-                    const wordReport = await this.generateWordReport(data, reportType, `temp-word-report-${Date.now()}.docx`);
-                    const excelReport = await this.generateExcelReport(data, reportType, `temp-excel-report-${Date.now()}.xlsx`);
-                    if (!wordReport || !excelReport) {
-                        throw new Error("Failed to generate reports");
-                    }
-                    const wordRef = storage.ref(`reports/${auth.currentUser.uid}/word-report-${Date.now()}.docx`);
-                    const excelRef = storage.ref(`reports/${auth.currentUser.uid}/excel-report-${Date.now()}.xlsx`);
-                    await wordRef.put(wordReport);
-                    await excelRef.put(excelReport);
-                    const wordUrl = await wordRef.getDownloadURL();
-                    const excelUrl = await excelRef.getDownloadURL();
-                    const emailParams = {
-                        to_email: recipientEmail,
-                        from_name: "Sikkim INSPIRES Tracker",
-                        subject: subject,
-                        message: `Please find attached the ${reportType} report from Sikkim INSPIRES Programme Tracker.`,
-                        word_report_url: wordUrl,
-                        excel_report_url: excelUrl
-                    };
-                    await this.emailjs.send('YOUR_EMAILJS_SERVICE_ID', 'YOUR_EMAILJS_TEMPLATE_ID', emailParams);
-                    showStatusMessage("Report sent by email successfully!");
-                    return true;
-                } catch (error) {
-                    console.error("Error sending email report:", error);
-                    showStatusMessage("Failed to send email report", 'error');
-                    return false;
-                }
-            }
-            downloadBlob(blob, fileName) {
-                const link = document.createElement('a');
-                const url = URL.createObjectURL(blob);
-                link.href = url;
-                link.download = fileName;
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-                URL.revokeObjectURL(url);
-            }
-        }
-        const reportGenerator = new ReportGenerator();
-        // Report Modal Functions
-        function showReportGenerationModal() {
-            const modalContent = `
-                <h2>Generate Report</h2>
-                <div class="form-group">
-                    <label for="reportType">Report Type</label>
-                    <select id="reportType">
-                        <option value="tasks">Tasks Report</option>
-                        <option value="meetings">Meetings Report</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label for="reportFormat">Format</label>
-                    <select id="reportFormat">
-                        <option value="word">Word Document</option>
-                        <option value="excel">Excel Spreadsheet</option>
-                        <option value="both">Both Formats</option>
-                        <option value="email">Email Report</option>
-                    </select>
-                </div>
-                <div class="form-group" id="emailFieldGroup" style="display: none;">
-                    <label for="recipientEmail">Recipient Email</label>
-                    <input type="email" id="recipientEmail" placeholder="Enter recipient email">
-                </div>
-                <div class="btn-group">
-                    <button class="btn" onclick="generateReport()">Generate</button>
-                    <button class="btn btn-secondary" onclick="hideReportModal()">Cancel</button>
-                </div>
-            `;
-            let modal = document.getElementById('reportModal');
-            if (!modal) {
-                modal = document.createElement('div');
-                modal.id = 'reportModal';
-                modal.className = 'modal';
-                modal.innerHTML = `<div class="modal-content">${modalContent}</div>`;
-                document.body.appendChild(modal);
-            } else {
-                modal.querySelector('.modal-content').innerHTML = modalContent;
-            }
-            document.getElementById('reportFormat').addEventListener('change', function() {
-                document.getElementById('emailFieldGroup').style.display =
-                    this.value === 'email' ? 'block' : 'none';
-            });
-            modal.classList.add('show');
-        }
-        function hideReportModal() {
-            document.getElementById('reportModal').classList.remove('show');
-        }
-        async function generateReport() {
-            const reportType = document.getElementById('reportType').value;
-            const format = document.getElementById('reportFormat').value;
-            const recipientEmail = document.getElementById('recipientEmail')?.value;
-            const data = reportType === 'tasks' ? tasks : meetings;
-            try {
-                showStatusMessage(`Generating ${reportType} report...`);
-                if (format === 'word' || format === 'both') {
-                    await reportGenerator.generateWordReport(data, reportType);
-                }
-                if (format === 'excel' || format === 'both') {
-                    await reportGenerator.generateExcelReport(data, reportType);
-                }
-                if (format === 'email') {
-                    if (!recipientEmail) {
-                        showStatusMessage('Please enter recipient email', 'error');
-                        return;
-                    }
-                    await reportGenerator.sendEmailReport(data, reportType, recipientEmail);
-                }
-                hideReportModal();
-                showStatusMessage('Report generated successfully!');
-            } catch (error) {
-                console.error("Report generation error:", error);
-                showStatusMessage('Failed to generate report', 'error');
-            }
-        }
-        // Predefined Tasks Functions
-        function loadPredefinedTasks() {
-            if (!checkPermission('add')) return;
-            const modalContent = `
-                <h2>Load Predefined Tasks</h2>
-                <p>Select which predefined tasks to add to your tracker:</p>
-                <div style="max-height: 400px; overflow-y: auto;">
-                    ${predefinedTasks.map(task => `
-                        <div style="margin-bottom: 10px; padding: 10px; border: 1px solid #e5e7eb; border-radius: 5px;">
-                            <input type="checkbox" id="task-${task.id}" checked>
-                            <label for="task-${task.id}">
-                                <strong>${task.department}</strong>: ${task.defaultStatus.substring(0, 50)}...
-                            </label>
-                        </div>
-                    `).join('')}
-                </div>
-                <div class="btn-group" style="margin-top: 20px;">
-                    <button class="btn" onclick="addSelectedPredefinedTasks()">Add Selected Tasks</button>
-                    <button class="btn btn-secondary" onclick="hidePredefinedTasksModal()">Cancel</button>
-                </div>
-            `;
-            let modal = document.getElementById('predefinedTasksModal');
-            if (!modal) {
-                modal = document.createElement('div');
-                modal.id = 'predefinedTasksModal';
-                modal.className = 'modal';
-                modal.innerHTML = `<div class="modal-content">${modalContent}</div>`;
-                document.body.appendChild(modal);
-            } else {
-                modal.querySelector('.modal-content').innerHTML = modalContent;
-            }
-            modal.classList.add('show');
-        }
-        async function addSelectedPredefinedTasks() {
-            const checkboxes = document.querySelectorAll('#predefinedTasksModal input[type="checkbox"]:checked');
-            if (checkboxes.length === 0) {
-                showStatusMessage('No tasks selected', 'error');
-                return;
-            }
-            try {
-                showStatusMessage(`Adding ${checkboxes.length} tasks...`);
-                const batch = db.batch();
-                const tasksRef = db.collection('tasks');
-                checkboxes.forEach(checkbox => {
-                    const taskId = checkbox.id.split('-')[1];
-                    const task = predefinedTasks.find(t => t.id == taskId);
-                    if (task) {
-                        const newTaskRef = tasksRef.doc();
-                        batch.set(newTaskRef, {
-                            department: task.department,
-                            status: task.defaultStatus,
-                            remarks: task.defaultRemarks,
-                            from: task.from,
-                            to: task.to,
-                            startDate: task.startDate,
-                            deliveryDate: task.deliveryDate,
-                            priority: task.priority,
-                            userId: auth.currentUser.uid,
-                            createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-                            lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
-                        });
-                    }
-                });
-                await batch.commit();
-                showStatusMessage(`${checkboxes.length} tasks added successfully!`);
-                hidePredefinedTasksModal();
-                filterTasks();
-                updateStats();
-            } catch (error) {
-                console.error("Error adding predefined tasks:", error);
-                showStatusMessage("Failed to add tasks", 'error');
-            }
-        }
-        function hidePredefinedTasksModal() {
-            document.getElementById('predefinedTasksModal').classList.remove('show');
-        }
-        // Event Listeners
+
+        // Close settings menu when clicking outside
         document.addEventListener('click', function(e) {
             const dropdown = document.querySelector('.settings-dropdown');
-            if (!dropdown.contains(e.target)) {
+            if (dropdown && !dropdown.contains(e.target)) {
                 hideSettingsMenu();
             }
         });
+
+        // Close modals when clicking outside
         document.getElementById('taskModal').addEventListener('click', function(e) {
             if (e.target === this) {
                 hideModal();
             }
         });
+
         document.getElementById('changePasswordModal').addEventListener('click', function(e) {
             if (e.target === this) {
                 hideChangePasswordModal();
             }
         });
-        document.getElementById('meetingModal').addEventListener('click', function(e) {
-            if (e.target === this) {
-                hideMeetingModal();
-            }
-        });
+
         document.getElementById('reportModal').addEventListener('click', function(e) {
             if (e.target === this) {
                 hideReportModal();
             }
         });
-        document.getElementById('predefinedTasksModal').addEventListener('click', function(e) {
-            if (e.target === this) {
-                hidePredefinedTasksModal();
-            }
-        });
-        document.getElementById('loginPassword').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                login();
-            }
-        });
+
         // Initialize application
         document.addEventListener('DOMContentLoaded', function() {
+            // Start with login screen
             document.getElementById('loginOverlay').style.display = 'flex';
-            // Add report generation button if user has permission
-            if (hasPermission('view')) {
-                const header = document.querySelector('.header-content');
-                if (header) {
-                    const reportBtn = document.createElement('button');
-                    reportBtn.className = 'btn';
-                    reportBtn.innerHTML = '📊 Generate Report';
-                    reportBtn.onclick = showReportGenerationModal;
-                    header.appendChild(reportBtn);
-                }
-                const predefinedBtn = document.createElement('button');
-                predefinedBtn.className = 'btn btn-secondary';
-                predefinedBtn.innerHTML = '📋 Load Predefined Tasks';
-                predefinedBtn.onclick = loadPredefinedTasks;
-                const tasksHeader = document.querySelector('#tasksTab .header-content');
-                if (tasksHeader) {
-                    tasksHeader.appendChild(predefinedBtn);
-                }
-            }
-        });
-        // Auth state listener
-        auth.onAuthStateChanged((user) => {
-            if (user) {
-                db.collection('users').doc(user.uid).get()
-                    .then((userDoc) => {
-                        if (userDoc.exists) {
-                            const userData = userDoc.data();
-                            currentUser.username = user.email.split('@')[0];
-                            currentUser.uid = user.uid;
-                            currentUser.role = userData.role;
-                            currentUser.name = userData.name || currentUser.username;
-                            currentUser.permissions = roleConfig[userData.role].permissions;
-                            updateUserInterface();
-                            document.getElementById('loginOverlay').style.display = 'none';
-                            initializeApp();
-                        }
-                    });
-            }
         });
     </script>
 </body>
