@@ -825,7 +825,7 @@
     </div>
 
     <script>
-        // Firebase Configuration
+        // Firebase Configuration - REPLACE WITH YOUR ACTUAL CONFIG
         const firebaseConfig = {
             apiKey: "your-api-key",
             authDomain: "your-project.firebaseapp.com",
@@ -833,6 +833,13 @@
             storageBucket: "your-project.appspot.com",
             messagingSenderId: "123456789",
             appId: "your-app-id"
+        };
+
+        // Demo users for testing (remove in production)
+        const demoUsers = {
+            'admin@demo.com': { password: 'admin123', role: 'admin' },
+            'operator@demo.com': { password: 'operator123', role: 'operator' },
+            'viewer@demo.com': { password: 'viewer123', role: 'viewer' }
         };
 
         // Initialize Firebase
@@ -869,6 +876,33 @@
 
         async function login(email, password, role) {
             try {
+                // For demo purposes - check demo users first
+                if (demoUsers[email] && demoUsers[email].password === password) {
+                    // Create a demo user session
+                    const demoUser = {
+                        uid: 'demo-' + email.split('@')[0],
+                        email: email
+                    };
+                    currentUser = demoUser;
+                    
+                    // Store demo user data
+                    await db.collection('users').doc(demoUser.uid).set({
+                        email: email,
+                        role: role,
+                        lastLogin: firebase.firestore.FieldValue.serverTimestamp()
+                    }, { merge: true });
+                    
+                    // Trigger auth state change manually for demo
+                    document.getElementById('authScreen').classList.add('hidden');
+                    document.getElementById('mainApp').classList.remove('hidden');
+                    document.getElementById('userEmail').textContent = email;
+                    loadUserRole();
+                    initializeApp();
+                    
+                    return demoUser;
+                }
+                
+                // Otherwise use Firebase Authentication
                 const userCredential = await auth.signInWithEmailAndPassword(email, password);
                 
                 // Store user role in Firestore
