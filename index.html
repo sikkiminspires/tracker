@@ -720,6 +720,112 @@
             margin-top: 1.5rem;
         }
         
+        /* New styles for meeting minutes */
+        .meeting-item {
+            background: white;
+            border-radius: 0.5rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            border: 1px solid #e5e7eb;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            transition: transform 0.2s;
+        }
+        
+        .meeting-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .meeting-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        
+        .meeting-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #111827;
+        }
+        
+        .meeting-date {
+            color: #6b7280;
+            font-size: 0.875rem;
+        }
+        
+        .meeting-department {
+            background: #dbeafe;
+            color: #1e40af;
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
+            font-size: 0.75rem;
+            font-weight: 500;
+            display: inline-block;
+            margin-top: 0.5rem;
+        }
+        
+        .meeting-content {
+            margin-top: 1rem;
+        }
+        
+        .meeting-section {
+            margin-bottom: 1rem;
+        }
+        
+        .meeting-section h4 {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 0.5rem;
+        }
+        
+        .meeting-section p {
+            font-size: 0.875rem;
+            color: #6b7280;
+            line-height: 1.5;
+        }
+        
+        .meeting-actions {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+        
+        .no-meetings {
+            text-align: center;
+            padding: 2rem;
+            color: #6b7280;
+        }
+        
+        /* Loading spinner */
+        .spinner {
+            border: 3px solid rgba(0, 0, 0, 0.1);
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            border-left-color: #2563eb;
+            animation: spin 1s linear infinite;
+            display: inline-block;
+            vertical-align: middle;
+            margin-right: 8px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .sync-status {
+            font-size: 0.75rem;
+            color: #6b7280;
+            margin-top: 0.5rem;
+            display: flex;
+            align-items: center;
+        }
+        
         @media (max-width: 768px) {
             .header-content {
                 flex-direction: column;
@@ -777,6 +883,10 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
         const auth = firebase.auth();
+        
+        // Firestore collections
+        const tasksCollection = db.collection('tasks');
+        const meetingsCollection = db.collection('meetings');
     </script>
 
     <!-- Login Overlay -->
@@ -861,8 +971,8 @@
                 <div class="filters-grid">
                     <label><input type="checkbox" name="department" value="C&ID" checked> C&ID</label>
                     <label><input type="checkbox" name="department" value="DET" checked> DET</label>
-		   			<label><input type="checkbox" name="department" value="DIT" checked> DIT</label>
-		   			<label><input type="checkbox" name="department" value="H&FWD" checked> H&FWD</label>
+                    <label><input type="checkbox" name="department" value="DIT" checked> DIT</label>
+                    <label><input type="checkbox" name="department" value="H&FWD" checked> H&FWD</label>
                     <label><input type="checkbox" name="department" value="RDD" checked> RDD</label>
                     <label><input type="checkbox" name="department" value="SDD" checked> SDD</label>
                     <label><input type="checkbox" name="department" value="T&CAD" checked> T&CAD</label>
@@ -873,6 +983,57 @@
             <div class="report-actions">
                 <button class="btn btn-success" onclick="generateReport()">Generate Report</button>
                 <button class="btn btn-secondary" onclick="hideReportModal()">Cancel</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Meeting Modal -->
+    <div class="modal" id="meetingModal">
+        <div class="modal-content">
+            <h2 id="meetingModalTitle">Add Meeting Minutes</h2>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="meetingTitle">Meeting Title</label>
+                    <input type="text" id="meetingTitle" required>
+                </div>
+                <div class="form-group">
+                    <label for="meetingDate">Meeting Date</label>
+                    <input type="date" id="meetingDate" required>
+                </div>
+                <div class="form-group">
+                    <label for="meetingDepartment">Department</label>
+                    <select id="meetingDepartment" required>
+                        <option value="">Select Department</option>
+                        <option value="C&ID">C&ID</option>
+                        <option value="DET">DET</option>
+                        <option value="DIT">DIT</option>
+                        <option value="H&FWD">H&FWD</option>
+                        <option value="RDD">RDD</option>
+                        <option value="SDD">SDD</option>
+                        <option value="T&CAD">T&CAD</option>
+                        <option value="WCDD">WCDD</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="meetingAttendees">Attendees</label>
+                    <input type="text" id="meetingAttendees" placeholder="Enter names separated by commas">
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="meetingAgenda">Agenda</label>
+                <textarea id="meetingAgenda" rows="3"></textarea>
+            </div>
+            <div class="form-group">
+                <label for="meetingMinutes">Meeting Minutes</label>
+                <textarea id="meetingMinutes" rows="5" required></textarea>
+            </div>
+            <div class="form-group">
+                <label for="meetingActionItems">Action Items</label>
+                <textarea id="meetingActionItems" rows="3"></textarea>
+            </div>
+            <div class="btn-group">
+                <button class="btn" onclick="saveMeeting()">Save Meeting</button>
+                <button class="btn btn-secondary" onclick="hideMeetingModal()">Cancel</button>
             </div>
         </div>
     </div>
@@ -905,107 +1066,168 @@
     </div>
 
     <div class="container">
-        <!-- Header -->
-        <div class="header">
-            <div class="header-content">
-                <div>
-                    <h1>Sikkim INSPIRES</h1>
-                    <p>Programme Activity Tracker</p>
-                </div>
-                <div>
-                    <div class="permission-warning" id="permissionWarning">
-                        ⚠️ You don't have permission to perform this action
+        <!-- Tasks Tab -->
+        <div id="tasksTab" class="tab-content active">
+            <!-- Header -->
+            <div class="header">
+                <div class="header-content">
+                    <div>
+                        <h1>Sikkim INSPIRES</h1>
+                        <p>Programme Activity Tracker</p>
                     </div>
-                    <button class="btn" onclick="showAddTaskModal()" id="addTaskBtn">
-                        <span>➕</span> Add New Task
-                    </button>
+                    <div>
+                        <div class="permission-warning" id="permissionWarning">
+                            ⚠️ You don't have permission to perform this action
+                        </div>
+                        <button class="btn" onclick="showAddTaskModal()" id="addTaskBtn">
+                            <span>➕</span> Add New Task
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Stats Cards -->
+                <div class="stats-grid">
+                    <div class="stat-card stat-total">
+                        <div>
+                            <div class="text-xs">Total Tasks</div>
+                            <div class="stat-number" id="totalTasks">0</div>
+                        </div>
+                    </div>
+                    <div class="stat-card stat-overdue">
+                        <div>
+                            <div class="text-xs">Overdue</div>
+                            <div class="stat-number" id="overdueTasks">0</div>
+                        </div>
+                    </div>
+                    <div class="stat-card stat-urgent">
+                        <div>
+                            <div class="text-xs">Urgent</div>
+                            <div class="stat-number" id="urgentTasks">0</div>
+                        </div>
+                    </div>
+                    <div class="stat-card stat-completed">
+                        <div>
+                            <div class="text-xs">Completed</div>
+                            <div class="stat-number" id="completedTasks">0</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Filters -->
+            <div class="filters">
+                <div class="filters-grid">
+                    <div class="search-box">
+                        <svg class="search-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                        </svg>
+                        <input type="text" class="search-input" placeholder="Search tasks..." id="searchInput" oninput="filterTasks()">
+                    </div>
+                    <select id="departmentFilter" onchange="filterTasks()">
+                        <option value="all">All Departments</option>
+                        <option value="C&ID">C&ID</option>
+                        <option value="DET">DET</option>
+                        <option value="DIT">DIT</option>
+                        <option value="H&FWD">H&FWD</option>
+                        <option value="RDD">RDD</option>
+                        <option value="SDD">SDD</option>
+                        <option value="T&CAD">T&CAD</option>
+                        <option value="WCDD">WCDD</option>
+                    </select>
+                    <select id="priorityFilter" onchange="filterTasks()">
+                        <option value="all">All Priorities</option>
+                        <option value="overdue">Overdue</option>
+                        <option value="urgent">Urgent</option>
+                        <option value="high">High</option>
+                        <option value="medium">Medium</option>
+                        <option value="low">Low</option>
+                    </select>
+                    <select id="sortBy" onchange="filterTasks()">
+                        <option value="deliveryDate">Sort by Delivery Date</option>
+                        <option value="department">Sort by Department</option>
+                        <option value="id">Sort by ID</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Tasks Table -->
+            <div class="table-container">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Department</th>
+                            <th>Status & Description</th>
+                            <th>Timeline</th>
+                            <th>Responsibility</th>
+                            <th>Progress Status</th>
+                            <th>Priority</th>
+                            <th>Pending With</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tasksTableBody">
+                        <!-- Tasks will be populated here -->
+                    </tbody>
+                </table>
+                <div id="emptyState" class="empty-state" style="display: none;">
+                    No tasks found matching your criteria.
+                </div>
+                <div class="sync-status" id="taskSyncStatus">
+                    <span class="spinner" id="taskSpinner" style="display: none;"></span>
+                    <span id="taskSyncText">Loading tasks...</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Meetings Tab -->
+        <div id="meetingsTab" class="tab-content">
+            <div class="header">
+                <div class="header-content">
+                    <div>
+                        <h1>Meeting Minutes</h1>
+                        <p>Record and track meeting discussions</p>
+                    </div>
+                    <div>
+                        <button class="btn" onclick="showAddMeetingModal()" id="addMeetingBtn">
+                            <span>➕</span> Add Meeting Minutes
+                        </button>
+                    </div>
                 </div>
             </div>
             
-            <!-- Stats Cards -->
-            <div class="stats-grid">
-                <div class="stat-card stat-total">
-                    <div>
-                        <div class="text-xs">Total Tasks</div>
-                        <div class="stat-number" id="totalTasks">34</div>
+            <div class="filters">
+                <div class="filters-grid">
+                    <div class="search-box">
+                        <svg class="search-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                        </svg>
+                        <input type="text" class="search-input" placeholder="Search meetings..." id="meetingSearchInput" oninput="filterMeetings()">
                     </div>
-                </div>
-                <div class="stat-card stat-overdue">
-                    <div>
-                        <div class="text-xs">Overdue</div>
-                        <div class="stat-number" id="overdueTasks">0</div>
-                    </div>
-                </div>
-                <div class="stat-card stat-urgent">
-                    <div>
-                        <div class="text-xs">Urgent</div>
-                        <div class="stat-number" id="urgentTasks">0</div>
-                    </div>
-                </div>
-                <div class="stat-card stat-completed">
-                    <div>
-                        <div class="text-xs">Completed</div>
-                        <div class="stat-number" id="completedTasks">0</div>
-                    </div>
+                    <select id="meetingDepartmentFilter" onchange="filterMeetings()">
+                        <option value="all">All Departments</option>
+                        <option value="C&ID">C&ID</option>
+                        <option value="DET">DET</option>
+                        <option value="DIT">DIT</option>
+                        <option value="H&FWD">H&FWD</option>
+                        <option value="RDD">RDD</option>
+                        <option value="SDD">SDD</option>
+                        <option value="T&CAD">T&CAD</option>
+                        <option value="WCDD">WCDD</option>
+                    </select>
+                    <select id="meetingSort" onchange="filterMeetings()">
+                        <option value="dateDesc">Sort by Date (Newest First)</option>
+                        <option value="dateAsc">Sort by Date (Oldest First)</option>
+                        <option value="title">Sort by Title</option>
+                    </select>
                 </div>
             </div>
-        </div>
-
-        <!-- Filters -->
-        <div class="filters">
-            <div class="filters-grid">
-                <div class="search-box">
-                    <svg class="search-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-                    </svg>
-                    <input type="text" class="search-input" placeholder="Search tasks..." id="searchInput" oninput="filterTasks()">
-                </div>
-                <select id="departmentFilter" onchange="filterTasks()">
-                    <option value="all">All Departments</option>
-                    <option value="C&ID">C&ID</option>
-                    <option value="DIT">DIT</option>
-                    <option value="RDD">RDD</option>
-                    <option value="SDD">SDD</option>
-                    <option value="T&CAD">T&CAD</option>
-                    <option value="WCDD">WCDD</option>
-                </select>
-                <select id="priorityFilter" onchange="filterTasks()">
-                    <option value="all">All Priorities</option>
-                    <option value="overdue">Overdue</option>
-                    <option value="urgent">Urgent</option>
-                    <option value="high">High</option>
-                    <option value="medium">Medium</option>
-                    <option value="low">Low</option>
-                </select>
-                <select id="sortBy" onchange="filterTasks()">
-                    <option value="deliveryDate">Sort by Delivery Date</option>
-                    <option value="department">Sort by Department</option>
-                    <option value="id">Sort by ID</option>
-                </select>
+            
+            <div id="meetingsContainer">
+                <!-- Meetings will be populated here -->
             </div>
-        </div>
-
-        <!-- Tasks Table -->
-        <div class="table-container">
-            <table class="table">
-                <thead>
-                    <tr>
-                        <th>Department</th>
-                        <th>Status & Description</th>
-                        <th>Timeline</th>
-                        <th>Responsibility</th>
-                        <th>Progress Status</th>
-                        <th>Priority</th>
-                        <th>Pending With</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody id="tasksTableBody">
-                    <!-- Tasks will be populated here -->
-                </tbody>
-            </table>
-            <div id="emptyState" class="empty-state" style="display: none;">
-                No tasks found matching your criteria.
+            <div class="sync-status" id="meetingSyncStatus">
+                <span class="spinner" id="meetingSpinner" style="display: none;"></span>
+                <span id="meetingSyncText">Loading meetings...</span>
             </div>
         </div>
     </div>
@@ -1020,7 +1242,9 @@
                     <select id="taskDepartment">
                         <option value="">Select Department</option>
                         <option value="C&ID">C&ID</option>
+                        <option value="DET">DET</option>
                         <option value="DIT">DIT</option>
+                        <option value="H&FWD">H&FWD</option>
                         <option value="RDD">RDD</option>
                         <option value="SDD">SDD</option>
                         <option value="T&CAD">T&CAD</option>
@@ -1156,527 +1380,68 @@
             }
         };
 
-        // Initial data - all 34 tasks
-        let tasks = [
-            // C&ID Tasks (5)
-            {
-                id: 1,
-                department: "C&ID",
-                status: "Convergence discussion between EEPF and Innovation Hub completed and TSA has shared the Scope of Work for Lead Incubation Partner with PMU for review.",
-                remarks: "With PMU",
-                from: "PMU",
-                to: "C&ID",
-                startDate: "2025-08-06",
-                deliveryDate: "",
-                progressDetails: "",
-                progressDate: "",
-                priority: "auto",
-                pendingWith: "PMU",
-                nextStep: ""
-            },
-            {
-                id: 2,
-                department: "C&ID",
-                status: "File has been initiated for the establishment of Innovation Hub as a legal entity",
-                remarks: "Timeline and the stage at which it is there",
-                from: "",
-                to: "",
-                startDate: "2025-08-06",
-                deliveryDate: "",
-                progressDetails: "",
-                progressDate: "",
-                priority: "auto",
-                pendingWith: "Legal Department",
-                nextStep: ""
-            },
-            {
-                id: 3,
-                department: "C&ID",
-                status: "Need assessment of DIC personnel in terms of capacity building to be submitted to PMU by 15th Aug. 2 proposals have been received – one each from BIMTech and IIM Calcutta. One proposal expected to be received from IIM Ahmedabad within a week",
-                remarks: "Proposals from three educational institutions",
-                from: "C&ID",
-                to: "PMU",
-                startDate: "2025-08-06",
-                deliveryDate: "2025-08-15",
-                progressDetails: "",
-                progressDate: "",
-                priority: "auto",
-                pendingWith: "IIM Ahmedabad",
-                nextStep: ""
-            },
-            {
-                id: 4,
-                department: "C&ID",
-                status: "SYSS - TSA has conducted meeting with LDM for expedition of NPA data from banks. Department would share request to LDM in a day or 2 for the said data",
-                remarks: "Getting the data from banks has been an issue except the State Bank of Sikkim",
-                from: "C&ID",
-                to: "LDM",
-                startDate: "2025-08-06",
-                deliveryDate: "",
-                progressDetails: "",
-                progressDate: "",
-                priority: "auto",
-                pendingWith: "Banks",
-                nextStep: ""
-            },
-            {
-                id: 5,
-                department: "C&ID",
-                status: "Feedback from WB to C&ID has been sent on Interim report on Assessment Study on Efficiency and Effectiveness of SYSS 1.0",
-                remarks: "Was sent on 7th August 2025",
-                from: "PMU",
-                to: "TSA",
-                startDate: "2025-08-07",
-                deliveryDate: "",
-                progressDetails: "",
-                progressDate: "",
-                priority: "auto",
-                pendingWith: "TSA",
-                nextStep: ""
-            },
-            // DIT Tasks (8)
-            {
-                id: 6,
-                department: "DIT",
-                status: "Feasibility study report has been submitted and PMU has asked for an exclusive discussion on the same. TSA to share time of meeting either on 7th Aug or 11th Aug. The disclaimer in the report is not acceptable and some of the recommendations also seem not feasible which need to be discussed further in detail.",
-                remarks: "Need discussions",
-                from: "PMU",
-                to: "DIT",
-                startDate: "2025-08-06",
-                deliveryDate: "",
-                progressDetails: "Need confirmation on turnaround time from C&ID",
-                progressDate: "2025-08-06",
-                priority: "auto",
-                pendingWith: "TSA",
-                nextStep: "Write an email?"
-            },
-            {
-                id: 7,
-                department: "DIT",
-                status: "Proposals for DPR of State Data Centre – ongoing",
-                remarks: "Clarity needed in this point",
-                from: "",
-                to: "",
-                startDate: "2025-08-06",
-                deliveryDate: "",
-                progressDetails: "",
-                progressDate: "",
-                priority: "auto",
-                pendingWith: "DIT",
-                nextStep: ""
-            },
-            {
-                id: 8,
-                department: "DIT",
-                status: "Digital readiness training - Approval from HCM received and work order has been issued to the identified vendor. Vendor to share training plan in a week's time post which DIT would write letters to all departments for nominating personnel for training.",
-                remarks: "Training plan awaited, timelines to be fixed",
-                from: "Vendor",
-                to: "DIT",
-                startDate: "2025-08-06",
-                deliveryDate: "",
-                progressDetails: "",
-                progressDate: "",
-                priority: "auto",
-                pendingWith: "Vendor",
-                nextStep: ""
-            },
-            {
-                id: 9,
-                department: "DIT",
-                status: "DLR 6.2.2 - compliance document for achievement for DLR to be shared by 7th Aug",
-                remarks: "DLR 6.2.2 Secretary IT and PGC have approved the State Data Policy",
-                from: "TSA",
-                to: "PMU",
-                startDate: "2025-08-06",
-                deliveryDate: "2025-08-07",
-                progressDetails: "Submitted to IVA, IVA will verify 6.1.1 and 6.1.2 first before delving in to 6.2.2 as per email of Prof. Priya sent on 09/08/25",
-                progressDate: "2025-08-09",
-                priority: "overdue",
-                pendingWith: "IVA",
-                nextStep: "Followup with IVA"
-            },
-            {
-                id: 10,
-                department: "DIT",
-                status: "DLR 6.2.1 ITD has prepared the State Data Policy and compliance plan",
-                remarks: "with IVA for verification",
-                from: "PMU",
-                to: "IVA",
-                startDate: "2025-08-06",
-                deliveryDate: "",
-                progressDetails: "",
-                progressDate: "",
-                priority: "auto",
-                pendingWith: "IVA",
-                nextStep: ""
-            },
-            {
-                id: 11,
-                department: "DIT",
-                status: "IT Needs assessment: 2 RFPs would be prepared. One covering MIS, LMS (internal and external) and employment and entrepreneurship portal ; and the second one covering CBP, SYSS and AAMA scheme automation.",
-                remarks: "2 RFPs see task, Timelines",
-                from: "TSA",
-                to: "PMU",
-                startDate: "2025-08-06",
-                deliveryDate: "",
-                progressDetails: "",
-                progressDate: "",
-                priority: "auto",
-                pendingWith: "TSA",
-                nextStep: ""
-            },
-            {
-                id: 12,
-                department: "DIT",
-                status: "TSA would conduct consultations with all related departments by 17th Aug and prepare the draft ToRs by 23rd August",
-                remarks: "Consultation with departments by 17th August",
-                from: "TSA",
-                to: "PMU",
-                startDate: "2025-08-06",
-                deliveryDate: "2025-08-23",
-                progressDetails: "",
-                progressDate: "",
-                priority: "auto",
-                pendingWith: "TSA",
-                nextStep: ""
-            },
-            {
-                id: 13,
-                department: "DIT",
-                status: "TSA wishes to seek time from Ambrish during his visit to Gangtok in the week of 25th Aug to discuss the ToRs and further fine tune the same.",
-                remarks: "Discussions with Ambarish during Gangtok visit",
-                from: "TSA",
-                to: "World Bank",
-                startDate: "2025-08-06",
-                deliveryDate: "2025-08-25",
-                progressDetails: "",
-                progressDate: "",
-                priority: "auto",
-                pendingWith: "World Bank",
-                nextStep: ""
-            },
-            // RDD Tasks (5)
-            {
-                id: 14,
-                department: "RDD",
-                status: "On the IEIAP documents, the TSA has requested that the timeline maybe set for end of August tentatively for preparation of all 6 district plans.",
-                remarks: "All 6 district IEIAP plans",
-                from: "TSA",
-                to: "PMU",
-                startDate: "2025-08-06",
-                deliveryDate: "2025-08-31",
-                progressDetails: "",
-                progressDate: "",
-                priority: "auto",
-                pendingWith: "PMU",
-                nextStep: ""
-            },
-            {
-                id: 15,
-                department: "RDD",
-                status: "TNA of SIRD has been submitted to PMU for review",
-                remarks: "With PMU and WB",
-                from: "PMU",
-                to: "TSA",
-                startDate: "2025-08-06",
-                deliveryDate: "",
-                progressDetails: "",
-                progressDate: "",
-                priority: "auto",
-                pendingWith: "PMU & WB",
-                nextStep: ""
-            },
-            {
-                id: 16,
-                department: "RDD",
-                status: "District level consultation meeting planned on 11th Aug at Soreng, 12th Aug at Gyalshing and 13th Aug at Namchi",
-                remarks: "IEIAP consultation meetings",
-                from: "TSA",
-                to: "District Administration",
-                startDate: "2025-08-06",
-                deliveryDate: "",
-                progressDetails: "",
-                progressDate: "",
-                priority: "auto",
-                pendingWith: "District Administration",
-                nextStep: ""
-            },
-            {
-                id: 17,
-                department: "RDD",
-                status: "Appointment of one District project manager in each of the 6 districts for IEIAP implementation to be explored by PMU",
-                remarks: "Recruitment of District Project Manager for IEIAP",
-                from: "Check",
-                to: "",
-                startDate: "2025-08-06",
-                deliveryDate: "",
-                progressDetails: "",
-                progressDate: "",
-                priority: "auto",
-                pendingWith: "PMU",
-                nextStep: ""
-            },
-            {
-                id: 18,
-                department: "RDD",
-                status: "CBT plans to be incorporated into the IEIAP after review of the CBT strategy document. TSA has requested PMU for a JWG meeting for better clarity on the Tourism department related interventions.",
-                remarks: "JWM Meeting need to be conducted with the initiative of the PMU",
-                from: "PMU",
-                to: "Check",
-                startDate: "2025-08-06",
-                deliveryDate: "",
-                progressDetails: "",
-                progressDate: "",
-                priority: "auto",
-                pendingWith: "PMU",
-                nextStep: ""
-            },
-            // SDD Tasks (7)
-            {
-                id: 19,
-                department: "SDD",
-                status: "Draft 2- RFP for selection of agency to conduct Skill gap study (SGAS)",
-                remarks: "20/08/2025",
-                from: "TSA",
-                to: "PMU",
-                startDate: "2025-08-06",
-                deliveryDate: "2025-08-20",
-                progressDetails: "Feedback received from World Bank on 7th July, TSA was to share the report on August 20th working on the feedback",
-                progressDate: "2025-07-07",
-                priority: "auto",
-                pendingWith: "TSA-SDD",
-                nextStep: "Check and send a follow-up email to check with the TSA-SDD"
-            },
-            {
-                id: 20,
-                department: "SDD",
-                status: "First draft of the Guidelines for virtual and blended Career Counselling and Placement Support Services",
-                remarks: "Target date 15th September, share the work progress on 20th August",
-                from: "SDD",
-                to: "PMU",
-                startDate: "2025-08-06",
-                deliveryDate: "2025-08-20",
-                progressDetails: "",
-                progressDate: "",
-                priority: "auto",
-                pendingWith: "TSA-SDD",
-                nextStep: "Check and send a follow-up email to check with the TSA-SDD"
-            },
-            {
-                id: 21,
-                department: "SDD",
-                status: "Career counselling and placement support services – Guidelines to be shared with PMU by 15th Sept. Plan for achievement of DLR 4.2.1 has been shared by TSA with PMU. Achievement expected by mid March 2026",
-                remarks: "DLR 4.2.1Virtual and blended career counselling and placement support services launched by SICB/ Niyukti Kendra/ SDD. Guidelines sharing by 15th September, share work in progress by 20th August",
-                from: "SDD",
-                to: "PMU",
-                startDate: "2025-08-06",
-                deliveryDate: "2025-08-20",
-                progressDetails: "",
-                progressDate: "",
-                priority: "auto",
-                pendingWith: "SDD",
-                nextStep: ""
-            },
-            {
-                id: 22,
-                department: "SDD",
-                status: "Infrastructure needs assessment report of SICB and 5 livelihood schools",
-                remarks: "Followup after 20th October",
-                from: "SDD",
-                to: "PMU",
-                startDate: "2025-08-06",
-                deliveryDate: "2025-08-15",
-                progressDetails: "",
-                progressDate: "",
-                priority: "auto",
-                pendingWith: "SDD",
-                nextStep: ""
-            },
-            {
-                id: 23,
-                department: "SDD",
-                status: "Needs assessment and institutional strengthening plan of SDD, SICB and Niyukti Kendra – framework to be shared with PMU by 20th October",
-                remarks: "Framework on 20th August delivery on 20th October",
-                from: "SDD",
-                to: "PMU",
-                startDate: "2025-08-06",
-                deliveryDate: "2025-08-20",
-                progressDetails: "",
-                progressDate: "",
-                priority: "auto",
-                pendingWith: "SDD",
-                nextStep: ""
-            },
-            {
-                id: 24,
-                department: "SDD",
-                status: "First draft of Content Management System guidelines for SDD Website. Action by 20th August - Communicate with TSA- ITD regarding the CMS Share the requirement document",
-                remarks: "Followup after 20th August",
-                from: "TSA",
-                to: "PMU",
-                startDate: "2025-08-06",
-                deliveryDate: "2025-08-20",
-                progressDetails: "Did TSA SDD communicate the IT-related invention to TSA DIT?",
-                progressDate: "2025-08-06",
-                priority: "auto",
-                pendingWith: "TSA-SDD",
-                nextStep: "Check and send a follow-up email to check with the TSA-SDD"
-            },
-            {
-                id: 25,
-                department: "SDD",
-                status: "First draft of Sikkim International Migration and Mobility Scheme (SIMMS) document Communicate with TSA- ITD regarding the CMS",
-                remarks: "Check",
-                from: "TSA",
-                to: "PMU",
-                startDate: "2025-08-06",
-                deliveryDate: "2025-08-20",
-                progressDetails: "",
-                progressDate: "",
-                priority: "auto",
-                pendingWith: "TSA-SDD",
-                nextStep: "Check and send a follow-up email to check with the TSA-SDD"
-            },
-            // T&CAD Tasks (5)
-            {
-                id: 26,
-                department: "T&CAD",
-                status: "Strategy of training programs to be conducted by IHM and IHCAE to be prepared by TCAD specifically highlighting the outreach activities to attract youth and women to the training programs",
-                remarks: "Training strategy document needed from TCAD, Timeline",
-                from: "",
-                to: "",
-                startDate: "2025-08-06",
-                deliveryDate: "",
-                progressDetails: "",
-                progressDate: "",
-                priority: "auto",
-                pendingWith: "TCAD",
-                nextStep: ""
-            },
-            {
-                id: 27,
-                department: "T&CAD",
-                status: "IHCAE training calendar has been approved as informed by TCAD",
-                remarks: "Training Calendar to be sent by TCAD",
-                from: "",
-                to: "",
-                startDate: "2025-08-06",
-                deliveryDate: "",
-                progressDetails: "",
-                progressDate: "",
-                priority: "auto",
-                pendingWith: "TCAD",
-                nextStep: ""
-            },
-            {
-                id: 28,
-                department: "T&CAD",
-                status: "TCAD to support PMU in obtaining training data from IHM and IHCAE for 2 years before April 2024 as part of the baseline for PDO achievement",
-                remarks: "Obtaining data from IHM and IHCAE",
-                from: "",
-                to: "",
-                startDate: "2025-08-06",
-                deliveryDate: "",
-                progressDetails: "",
-                progressDate: "",
-                priority: "auto",
-                pendingWith: "IHM & IHCAE",
-                nextStep: ""
-            },
-            {
-                id: 29,
-                department: "T&CAD",
-                status: "Board of Governors meeting for IHM was held in April 2025 and IHCAE was held in July 2025. TCAD to share the Minutes of the Meetings with PMU",
-                remarks: "TCAD to share minutes of the meeting",
-                from: "",
-                to: "",
-                startDate: "2025-08-06",
-                deliveryDate: "",
-                progressDetails: "",
-                progressDate: "",
-                priority: "auto",
-                pendingWith: "TCAD",
-                nextStep: ""
-            },
-            {
-                id: 30,
-                department: "T&CAD",
-                status: "PMU to share the list of 7 identified ecotourism sites to be used by TCAD for developing CBT plans",
-                remarks: "List to be shared with TCAD",
-                from: "PMU",
-                to: "TCAD",
-                startDate: "2025-08-06",
-                deliveryDate: "",
-                progressDetails: "",
-                progressDate: "",
-                priority: "auto",
-                pendingWith: "PMU",
-                nextStep: ""
-            },
-            // WCDD Tasks (4)
-            {
-                id: 31,
-                department: "WCDD",
-                status: "It was agreed for the ICMS RFP floating deadline to be 15th September 2025 and the same would be mentioned in the Technical Note of the WB's 3rd ISM",
-                remarks: "To be noted in technical note of WB's 3rd ISM",
-                from: "",
-                to: "",
-                startDate: "2025-08-06",
-                deliveryDate: "2025-09-15",
-                progressDetails: "",
-                progressDate: "",
-                priority: "auto",
-                pendingWith: "World Bank",
-                nextStep: ""
-            },
-            {
-                id: 32,
-                department: "WCDD",
-                status: "WCDD has decided to avail the services of Martha Farrell Foundation for developing the training modules and has asked the Foundation to submit the proposal for the same.",
-                remarks: "Martha Farrell with submit a proposal to WCDD for developing the training modules",
-                from: "",
-                to: "",
-                startDate: "2025-08-06",
-                deliveryDate: "",
-                progressDetails: "",
-                progressDate: "",
-                priority: "auto",
-                pendingWith: "Martha Farrell Foundation",
-                nextStep: ""
-            },
-            {
-                id: 33,
-                department: "WCDD",
-                status: "Integration Plan - It has been decided to make it phase wise beginning with Children then adolescents and then women. PMU has shared an updated framework for children's integration plan with WCDD. On the plan of action there would be 2 levels of consultation - one FGD with the existing set of children in the CCIs and two a workshop with children who have already left the CCIs over the last 2 - 3 years. DCPOs would support in tracking them. Proposal from TISS received but it needs to be revised.",
-                remarks: "TISS proposal needs revision",
-                from: "",
-                to: "",
-                startDate: "2025-08-06",
-                deliveryDate: "",
-                progressDetails: "",
-                progressDate: "",
-                priority: "auto",
-                pendingWith: "TISS",
-                nextStep: ""
-            },
-            {
-                id: 34,
-                department: "WCDD",
-                status: "Partnership with UNICEF - discussions ongoing",
-                remarks: "",
-                from: "",
-                to: "",
-                startDate: "2025-08-14",
-                deliveryDate: "",
-                progressDetails: "",
-                progressDate: "",
-                priority: "auto",
-                pendingWith: "WCDD & UNICEF",
-                nextStep: ""
-            }
-        ];
-
+        let tasks = [];
+        let meetings = [];
+        let tasksListener = null;
+        let meetingsListener = null;
         let currentEditId = null;
+        let currentMeetingEditId = null;
+
+        // Initialize Firestore listeners
+        function initFirestoreListeners() {
+            // Tasks listener
+            tasksListener = tasksCollection.orderBy("createdAt", "desc").onSnapshot(snapshot => {
+                document.getElementById('taskSpinner').style.display = 'inline-block';
+                document.getElementById('taskSyncText').textContent = 'Syncing tasks...';
+                
+                tasks = [];
+                snapshot.forEach(doc => {
+                    const task = doc.data();
+                    tasks.push({ id: doc.id, ...task });
+                });
+                
+                renderTasks();
+                updateStats();
+                
+                setTimeout(() => {
+                    document.getElementById('taskSpinner').style.display = 'none';
+                    document.getElementById('taskSyncText').textContent = `Tasks synced at ${new Date().toLocaleTimeString()}`;
+                }, 500);
+            }, error => {
+                console.error("Tasks listener error:", error);
+                document.getElementById('taskSyncText').textContent = 'Sync error!';
+                document.getElementById('taskSpinner').style.display = 'none';
+            });
+            
+            // Meetings listener
+            meetingsListener = meetingsCollection.orderBy("date", "desc").onSnapshot(snapshot => {
+                document.getElementById('meetingSpinner').style.display = 'inline-block';
+                document.getElementById('meetingSyncText').textContent = 'Syncing meetings...';
+                
+                meetings = [];
+                snapshot.forEach(doc => {
+                    const meeting = doc.data();
+                    meetings.push({ id: doc.id, ...meeting });
+                });
+                
+                renderMeetings();
+                
+                setTimeout(() => {
+                    document.getElementById('meetingSpinner').style.display = 'none';
+                    document.getElementById('meetingSyncText').textContent = `Meetings synced at ${new Date().toLocaleTimeString()}`;
+                }, 500);
+            }, error => {
+                console.error("Meetings listener error:", error);
+                document.getElementById('meetingSyncText').textContent = 'Sync error!';
+                document.getElementById('meetingSpinner').style.display = 'none';
+            });
+        }
+        
+        // Cleanup listeners on logout
+        function cleanupFirestoreListeners() {
+            if (tasksListener) tasksListener();
+            if (meetingsListener) meetingsListener();
+        }
 
         // Password utilities
         function validatePassword(password) {
@@ -1757,11 +1522,12 @@
             document.getElementById('loginOverlay').style.display = 'none';
             
             // Initialize the app
-            initializeApp();
+            initFirestoreListeners();
         }
 
         function logout() {
             if (confirm('Are you sure you want to logout?')) {
+                cleanupFirestoreListeners();
                 currentUser = { email: null, role: null, name: '', permissions: {} };
                 
                 // Reset login form
@@ -2080,20 +1846,18 @@
             
             // Update button visibility based on permissions
             const addTaskBtn = document.getElementById('addTaskBtn');
+            const addMeetingBtn = document.getElementById('addMeetingBtn');
             
             if (hasPermission('add')) {
                 addTaskBtn.classList.remove('hidden');
+                addMeetingBtn.classList.remove('hidden');
             } else {
                 addTaskBtn.classList.add('hidden');
+                addMeetingBtn.classList.add('hidden');
             }
             
             // Update table rendering for action buttons
             filterTasks();
-        }
-
-        function initializeApp() {
-            renderTasks();
-            updateStats();
         }
 
         // Utility functions
@@ -2179,10 +1943,10 @@
                 // Generate action buttons based on permissions
                 let actionButtons = '';
                 if (hasPermission('edit')) {
-                    actionButtons += `<button class="btn btn-sm" onclick="editTask(${task.id})">✏️</button>`;
+                    actionButtons += `<button class="btn btn-sm" onclick="editTask('${task.id}')">✏️</button>`;
                 }
                 if (hasPermission('delete')) {
-                    actionButtons += `<button class="btn btn-danger btn-sm" onclick="deleteTask(${task.id})">🗑️</button>`;
+                    actionButtons += `<button class="btn btn-danger btn-sm" onclick="deleteTask('${task.id}')">🗑️</button>`;
                 }
                 if (!actionButtons) {
                     actionButtons = '<span class="text-xs text-gray">No actions available</span>';
@@ -2243,7 +2007,7 @@
             let filtered = tasks.filter(task => {
                 const matchesSearch = task.status.toLowerCase().includes(searchTerm) ||
                                    task.department.toLowerCase().includes(searchTerm) ||
-                                   task.remarks.toLowerCase().includes(searchTerm) ||
+                                   (task.remarks && task.remarks.toLowerCase().includes(searchTerm)) ||
                                    (task.pendingWith && task.pendingWith.toLowerCase().includes(searchTerm));
                 const matchesDepartment = departmentFilter === 'all' || task.department === departmentFilter;
                 const matchesPriority = priorityFilter === 'all' || getTaskPriority(task) === priorityFilter;
@@ -2290,16 +2054,16 @@
             
             document.getElementById('taskDepartment').value = task.department;
             document.getElementById('taskStatus').value = task.status;
-            document.getElementById('taskRemarks').value = task.remarks;
-            document.getElementById('taskFrom').value = task.from;
-            document.getElementById('taskTo').value = task.to;
+            document.getElementById('taskRemarks').value = task.remarks || '';
+            document.getElementById('taskFrom').value = task.from || '';
+            document.getElementById('taskTo').value = task.to || '';
             document.getElementById('taskStartDate').value = task.startDate;
-            document.getElementById('taskDeliveryDate').value = task.deliveryDate;
+            document.getElementById('taskDeliveryDate').value = task.deliveryDate || '';
             document.getElementById('taskPriority').value = task.priority || 'auto';
-            document.getElementById('taskProgress').value = task.progressDetails;
-            document.getElementById('taskProgressDate').value = task.progressDate;
+            document.getElementById('taskProgress').value = task.progressDetails || '';
+            document.getElementById('taskProgressDate').value = task.progressDate || '';
             document.getElementById('taskPendingWith').value = task.pendingWith || '';
-            document.getElementById('taskNextStep').value = task.nextStep;
+            document.getElementById('taskNextStep').value = task.nextStep || '';
             
             document.getElementById('taskModal').classList.add('show');
         }
@@ -2308,9 +2072,11 @@
             if (!checkPermission('delete')) return;
             
             if (confirm('Are you sure you want to delete this task?')) {
-                tasks = tasks.filter(t => t.id !== id);
-                filterTasks();
-                updateStats();
+                tasksCollection.doc(id).delete()
+                    .catch(error => {
+                        console.error("Error deleting task:", error);
+                        alert('Failed to delete task. Please try again.');
+                    });
             }
         }
 
@@ -2332,7 +2098,8 @@
                 progressDetails: document.getElementById('taskProgress').value,
                 progressDate: document.getElementById('taskProgressDate').value,
                 pendingWith: document.getElementById('taskPendingWith').value,
-                nextStep: document.getElementById('taskNextStep').value
+                nextStep: document.getElementById('taskNextStep').value,
+                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
             };
             
             if (!formData.department || !formData.status || !formData.startDate) {
@@ -2342,20 +2109,26 @@
             
             if (currentEditId) {
                 // Edit existing task
-                const taskIndex = tasks.findIndex(t => t.id === currentEditId);
-                tasks[taskIndex] = { ...tasks[taskIndex], ...formData };
+                tasksCollection.doc(currentEditId).update(formData)
+                    .then(() => {
+                        hideModal();
+                    })
+                    .catch(error => {
+                        console.error("Error updating task:", error);
+                        alert('Failed to update task. Please try again.');
+                    });
             } else {
                 // Add new task
-                const newTask = {
-                    ...formData,
-                    id: Math.max(...tasks.map(t => t.id), 0) + 1
-                };
-                tasks.push(newTask);
+                formData.createdAt = firebase.firestore.FieldValue.serverTimestamp();
+                tasksCollection.add(formData)
+                    .then(() => {
+                        hideModal();
+                    })
+                    .catch(error => {
+                        console.error("Error adding task:", error);
+                        alert('Failed to add task. Please try again.');
+                    });
             }
-            
-            hideModal();
-            filterTasks();
-            updateStats();
         }
 
         function hideModal() {
@@ -2377,7 +2150,224 @@
             document.getElementById('taskPendingWith').value = '';
             document.getElementById('taskNextStep').value = '';
         }
+        
+        // Meeting minutes functions
+        function showAddMeetingModal() {
+            if (!checkPermission('add')) return;
+            
+            currentMeetingEditId = null;
+            document.getElementById('meetingModalTitle').textContent = 'Add Meeting Minutes';
+            clearMeetingForm();
+            document.getElementById('meetingDate').value = new Date().toISOString().split('T')[0];
+            document.getElementById('meetingModal').classList.add('show');
+        }
+        
+        function showEditMeetingModal(id) {
+            const meeting = meetings.find(m => m.id === id);
+            if (!meeting) return;
+            
+            currentMeetingEditId = id;
+            document.getElementById('meetingModalTitle').textContent = 'Edit Meeting Minutes';
+            
+            document.getElementById('meetingTitle').value = meeting.title;
+            document.getElementById('meetingDate').value = meeting.date;
+            document.getElementById('meetingDepartment').value = meeting.department;
+            document.getElementById('meetingAttendees').value = meeting.attendees || '';
+            document.getElementById('meetingAgenda').value = meeting.agenda || '';
+            document.getElementById('meetingMinutes').value = meeting.minutes;
+            document.getElementById('meetingActionItems').value = meeting.actionItems || '';
+            
+            document.getElementById('meetingModal').classList.add('show');
+        }
+        
+        function hideMeetingModal() {
+            document.getElementById('meetingModal').classList.remove('show');
+            clearMeetingForm();
+        }
+        
+        function clearMeetingForm() {
+            document.getElementById('meetingTitle').value = '';
+            document.getElementById('meetingDate').value = '';
+            document.getElementById('meetingDepartment').value = '';
+            document.getElementById('meetingAttendees').value = '';
+            document.getElementById('meetingAgenda').value = '';
+            document.getElementById('meetingMinutes').value = '';
+            document.getElementById('meetingActionItems').value = '';
+        }
+        
+        function saveMeeting() {
+            const isEditing = currentMeetingEditId !== null;
+            const requiredPermission = isEditing ? 'edit' : 'add';
+            
+            if (!checkPermission(requiredPermission)) return;
+            
+            const formData = {
+                title: document.getElementById('meetingTitle').value,
+                date: document.getElementById('meetingDate').value,
+                department: document.getElementById('meetingDepartment').value,
+                attendees: document.getElementById('meetingAttendees').value,
+                agenda: document.getElementById('meetingAgenda').value,
+                minutes: document.getElementById('meetingMinutes').value,
+                actionItems: document.getElementById('meetingActionItems').value,
+                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+            };
+            
+            if (!formData.title || !formData.date || !formData.department || !formData.minutes) {
+                alert('Please fill in all required fields (Title, Date, Department, Minutes)');
+                return;
+            }
+            
+            if (currentMeetingEditId) {
+                // Update existing meeting
+                meetingsCollection.doc(currentMeetingEditId).update(formData)
+                    .then(() => {
+                        hideMeetingModal();
+                    })
+                    .catch(error => {
+                        console.error("Error updating meeting:", error);
+                        alert('Failed to update meeting. Please try again.');
+                    });
+            } else {
+                // Add new meeting
+                formData.createdAt = firebase.firestore.FieldValue.serverTimestamp();
+                meetingsCollection.add(formData)
+                    .then(() => {
+                        hideMeetingModal();
+                    })
+                    .catch(error => {
+                        console.error("Error adding meeting:", error);
+                        alert('Failed to add meeting. Please try again.');
+                    });
+            }
+        }
+        
+        function deleteMeeting(id) {
+            if (!checkPermission('delete')) return;
+            
+            if (confirm('Are you sure you want to delete this meeting?')) {
+                meetingsCollection.doc(id).delete()
+                    .catch(error => {
+                        console.error("Error deleting meeting:", error);
+                        alert('Failed to delete meeting. Please try again.');
+                    });
+            }
+        }
+        
+        function renderMeetings(meetingsToRender = meetings) {
+            const container = document.getElementById('meetingsContainer');
+            const emptyState = document.createElement('div');
+            emptyState.className = 'no-meetings';
+            emptyState.textContent = 'No meetings found. Add a meeting to get started.';
+            
+            if (meetingsToRender.length === 0) {
+                container.innerHTML = '';
+                container.appendChild(emptyState);
+                return;
+            }
+            
+            container.innerHTML = meetingsToRender.map(meeting => {
+                const meetingDate = new Date(meeting.date);
+                const formattedDate = meetingDate.toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                });
+                
+                let actionButtons = '';
+                if (hasPermission('edit') || hasPermission('delete')) {
+                    actionButtons = `<div class="meeting-actions">`;
+                    if (hasPermission('edit')) {
+                        actionButtons += `<button class="btn btn-sm" onclick="showEditMeetingModal('${meeting.id}')">✏️ Edit</button>`;
+                    }
+                    if (hasPermission('delete')) {
+                        actionButtons += `<button class="btn btn-danger btn-sm" onclick="deleteMeeting('${meeting.id}')">🗑️ Delete</button>`;
+                    }
+                    actionButtons += `</div>`;
+                }
+                
+                return `
+                    <div class="meeting-item">
+                        <div class="meeting-header">
+                            <div>
+                                <div class="meeting-title">${meeting.title}</div>
+                                <div class="meeting-date">${formattedDate}</div>
+                            </div>
+                            <span class="meeting-department">${meeting.department}</span>
+                        </div>
+                        
+                        <div class="meeting-content">
+                            ${meeting.attendees ? `
+                            <div class="meeting-section">
+                                <h4>Attendees</h4>
+                                <p>${meeting.attendees}</p>
+                            </div>` : ''}
+                            
+                            ${meeting.agenda ? `
+                            <div class="meeting-section">
+                                <h4>Agenda</h4>
+                                <p>${meeting.agenda}</p>
+                            </div>` : ''}
+                            
+                            <div class="meeting-section">
+                                <h4>Meeting Minutes</h4>
+                                <p>${meeting.minutes}</p>
+                            </div>
+                            
+                            ${meeting.actionItems ? `
+                            <div class="meeting-section">
+                                <h4>Action Items</h4>
+                                <p>${meeting.actionItems}</p>
+                            </div>` : ''}
+                        </div>
+                        
+                        ${actionButtons}
+                    </div>
+                `;
+            }).join('');
+        }
+        
+        function filterMeetings() {
+            const searchTerm = document.getElementById('meetingSearchInput').value.toLowerCase();
+            const departmentFilter = document.getElementById('meetingDepartmentFilter').value;
+            const sortBy = document.getElementById('meetingSort').value;
+            
+            let filtered = meetings.filter(meeting => {
+                const matchesSearch = meeting.title.toLowerCase().includes(searchTerm) ||
+                                     meeting.minutes.toLowerCase().includes(searchTerm) ||
+                                     (meeting.attendees && meeting.attendees.toLowerCase().includes(searchTerm));
+                const matchesDepartment = departmentFilter === 'all' || meeting.department === departmentFilter;
+                
+                return matchesSearch && matchesDepartment;
+            });
 
+            // Sort
+            filtered.sort((a, b) => {
+                if (sortBy === 'dateDesc') {
+                    return new Date(b.date) - new Date(a.date);
+                }
+                if (sortBy === 'dateAsc') {
+                    return new Date(a.date) - new Date(b.date);
+                }
+                return a.title.localeCompare(b.title);
+            });
+
+            renderMeetings(filtered);
+        }
+        
+        // Tab switching
+        function switchTab(tabName) {
+            // Update active tab
+            document.querySelectorAll('.nav-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            document.querySelector(`.nav-tab[onclick="switchTab('${tabName}')"]`).classList.add('active');
+            document.getElementById(`${tabName}Tab`).classList.add('active');
+        }
+        
         // Close settings menu when clicking outside
         document.addEventListener('click', function(e) {
             const dropdown = document.querySelector('.settings-dropdown');
@@ -2402,6 +2392,12 @@
         document.getElementById('reportModal').addEventListener('click', function(e) {
             if (e.target === this) {
                 hideReportModal();
+            }
+        });
+        
+        document.getElementById('meetingModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                hideMeetingModal();
             }
         });
 
