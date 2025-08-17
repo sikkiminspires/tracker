@@ -1,6 +1,16 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <!-- Previous head content remains the same -->
+    <!-- Add Firebase and document generation libraries -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-storage-compat.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/docx/7.1.0/docx.min.js"></script>
+    <script src="https://cdn.sheetjs.com/xlsx-0.19.0/package/dist/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/emailjs-com@3.2.0/dist/email.min.js"></script>
+<head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sikkim INSPIRES Programme Tracker</title>
@@ -2093,6 +2103,1544 @@
             // Start with login screen
             document.getElementById('loginOverlay').style.display = 'flex';
         });
+    </script>
+</body>
+</html>
+
+    <script>
+        // ====================== FIREBASE CONFIGURATION ======================
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+            databaseURL: "https://YOUR_PROJECT_ID.firebaseio.com",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_PROJECT_ID.appspot.com",
+            messagingSenderId: "YOUR_SENDER_ID",
+            appId: "YOUR_APP_ID",
+            measurementId: "YOUR_MEASUREMENT_ID"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+        const auth = firebase.auth();
+        const storage = firebase.storage();
+
+        // Initialize EmailJS (for email reports)
+        emailjs.init("YOUR_EMAILJS_USER_ID");
+
+        // ====================== USER SYNCHRONIZATION ======================
+        class UserSync {
+            constructor() {
+                this.currentUser = null;
+                this.userData = {};
+                this.authStateListeners = [];
+                
+                auth.onAuthStateChanged((user) => {
+                    this.currentUser = user;
+                    if (user) {
+                        this.setupUserDataSync();
+                        this.loadTasks();
+                        this.loadMeetings();
+                    }
+                    this.notifyAuthStateChange();
+                });
+            }
+
+            setupUserDataSync() {
+                this.userDataUnsubscribe = db.collection('users')
+                    .doc(this.currentUser.uid)
+                    .onSnapshot((doc) => {
+                        this.userData = doc.exists ? doc.data() : {};
+                        this.notifyUserDataChange();
+                    });
+            }
+
+            async loadTasks() {
+                try {
+                    const snapshot = await db.collection('tasks')
+                        .where('userId', '==', this.currentUser.uid)
+                        .get();
+                    
+                    tasks = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                    renderTasks();
+                    updateStats();
+                } catch (error) {
+                    console.error("Error loading tasks:", error);
+                    showStatusMessage("Error loading tasks. Please refresh.", 'error');
+                }
+            }
+
+            async loadMeetings() {
+                try {
+                    const snapshot = await db.collection('meetings')
+                        .where('userId', '==', this.currentUser.uid)
+                        .get();
+                    
+                    meetings = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                    renderMeetings();
+                } catch (error) {
+                    console.error("Error loading meetings:", error);
+                    showStatusMessage("Error loading meetings. Please refresh.", 'error');
+                }
+            }
+
+            onAuthStateChanged(callback) {
+                this.authStateListeners.push(callback);
+                if (this.currentUser !== null) {
+                    callback(this.currentUser);
+                }
+            }
+
+            notifyAuthStateChange() {
+                this.authStateListeners.forEach(callback => callback(this.currentUser));
+            }
+
+            notifyUserDataChange() {
+                // Implement any data change listeners here
+            }
+
+            async updateUserData(data) {
+                try {
+                    await db.collection('users')
+                        .doc(this.currentUser.uid)
+                        .set(data, { merge: true });
+                    return true;
+                } catch (error) {
+                    console.error("Error updating user data:", error);
+                    return false;
+                }
+            }
+        }
+
+        const userSync = new UserSync();
+
+        // ====================== REPORT GENERATION ======================
+        class ReportGenerator {
+            constructor() {
+                this.docx = window.docx;
+                this.xlsx = window.XLSX;
+                this.emailjs = window.emailjs;
+            }
+
+            async generateWordReport(data, reportType = 'tasks', fileName = `report-${Date.now()}.docx`) {
+                try {
+                    const { Document, Paragraph, TextRun, HeadingLevel, Packer } = this.docx;
+                    
+                    const doc = new Document({
+                        sections: [{
+                            properties: {},
+                            children: [
+                                new Paragraph({
+                                    text: "Sikkim INSPIRES Programme Report",
+                                    heading: HeadingLevel.HEADING_1,
+                                    spacing: { after: 200 }
+                                }),
+                                new Paragraph({
+                                    text: `Generated on: ${new Date().toLocaleString()}`,
+                                    spacing: { after: 400 }
+                                }),
+                                // Add report content based on type
+                                ...this.getReportContent(data, reportType)
+                            ]
+                        }]
+                    });
+                    
+                    const blob = await Packer.toBlob(doc);
+                    this.downloadBlob(blob, fileName);
+                    return true;
+                } catch (error) {
+                    console.error("Word report generation failed:", error);
+                    showStatusMessage("Failed to generate Word report", 'error');
+                    return false;
+                }
+            }
+
+            getReportContent(data, reportType) {
+                if (reportType === 'tasks') {
+                    return [
+                        new Paragraph({
+                            text: "Tasks Report",
+                            heading: HeadingLevel.HEADING_2
+                        }),
+                        ...data.map(task => new Paragraph({
+                            children: [
+                                new TextRun({
+                                    text: `${task.department}: ${task.status}`,
+                                    bold: true
+                                }),
+                                new TextRun({
+                                    text: `\nDelivery Date: ${task.deliveryDate || 'N/A'}`,
+                                    break: 1
+                                }),
+                                new TextRun({
+                                    text: `\nPriority: ${this.getPriorityDisplay(task)}`,
+                                    break: 1
+                                }),
+                                new TextRun({
+                                    text: `\nProgress: ${task.progressDetails || 'No progress updates'}`,
+                                    break: 1
+                                })
+                            ],
+                            spacing: { after: 200 }
+                        }))
+                    ];
+                } else {
+                    // Meetings report
+                    return [
+                        new Paragraph({
+                            text: "Meetings Report",
+                            heading: HeadingLevel.HEADING_2
+                        }),
+                        ...data.map(meeting => new Paragraph({
+                            children: [
+                                new TextRun({
+                                    text: meeting.title,
+                                    bold: true
+                                }),
+                                new TextRun({
+                                    text: `\nDate: ${new Date(meeting.date).toLocaleString()}`,
+                                    break: 1
+                                }),
+                                new TextRun({
+                                    text: `\nObjective: ${meeting.objective}`,
+                                    break: 1
+                                }),
+                                new TextRun({
+                                    text: `\nKey Decisions: ${meeting.decisions || 'None recorded'}`,
+                                    break: 1
+                                })
+                            ],
+                            spacing: { after: 200 }
+                        }))
+                    ];
+                }
+            }
+
+            getPriorityDisplay(task) {
+                const priority = this.getTaskPriority(task);
+                return task.priority === 'auto' ? 
+                    `${priority.charAt(0).toUpperCase() + priority.slice(1)} (Auto)` : 
+                    priority.charAt(0).toUpperCase() + priority.slice(1);
+            }
+
+            async generateExcelReport(data, reportType = 'tasks', fileName = `report-${Date.now()}.xlsx`) {
+                try {
+                    let worksheet;
+                    
+                    if (reportType === 'tasks') {
+                        const formattedData = data.map(task => ({
+                            "Department": task.department,
+                            "Status": task.status,
+                            "Start Date": task.startDate,
+                            "Delivery Date": task.deliveryDate || 'N/A',
+                            "Priority": this.getPriorityDisplay(task),
+                            "Progress": task.progressDetails || 'No progress',
+                            "Pending With": task.pendingWith || 'N/A',
+                            "Next Step": task.nextStep || 'N/A'
+                        }));
+                        
+                        worksheet = this.xlsx.utils.json_to_sheet(formattedData);
+                    } else {
+                        // Meetings report
+                        const formattedData = data.map(meeting => ({
+                            "Title": meeting.title,
+                            "Date": new Date(meeting.date).toLocaleString(),
+                            "Departments": meeting.departments,
+                            "Chairperson": meeting.chairperson,
+                            "Objective": meeting.objective,
+                            "Key Decisions": meeting.decisions || 'None',
+                            "Action Items": meeting.actionItems || 'None'
+                        }));
+                        
+                        worksheet = this.xlsx.utils.json_to_sheet(formattedData);
+                    }
+                    
+                    const workbook = this.xlsx.utils.book_new();
+                    this.xlsx.utils.book_append_sheet(workbook, worksheet, "Report");
+                    this.xlsx.writeFile(workbook, fileName);
+                    
+                    return true;
+                } catch (error) {
+                    console.error("Excel report generation failed:", error);
+                    showStatusMessage("Failed to generate Excel report", 'error');
+                    return false;
+                }
+            }
+
+            async sendEmailReport(data, reportType, recipientEmail, subject = "Sikkim INSPIRES Report") {
+                try {
+                    // First generate the reports
+                    const wordReport = await this.generateWordReport(data, reportType, `temp-report-${Date.now()}.docx`);
+                    const excelReport = await this.generateExcelReport(data, reportType, `temp-report-${Date.now()}.xlsx`);
+                    
+                    if (!wordReport || !excelReport) {
+                        throw new Error("Failed to generate reports");
+                    }
+                    
+                    // Upload reports to Firebase Storage
+                    const wordRef = storage.ref(`reports/${currentUser.uid}/word-report-${Date.now()}.docx`);
+                    const excelRef = storage.ref(`reports/${currentUser.uid}/excel-report-${Date.now()}.xlsx`);
+                    
+                    await wordRef.put(wordReport);
+                    await excelRef.put(excelReport);
+                    
+                    // Get download URLs
+                    const wordUrl = await wordRef.getDownloadURL();
+                    const excelUrl = await excelRef.getDownloadURL();
+                    
+                    // Send email with links to the reports
+                    const emailParams = {
+                        to_email: recipientEmail,
+                        from_name: "Sikkim INSPIRES Tracker",
+                        subject: subject,
+                        message: `Please find attached the ${reportType} report from Sikkim INSPIRES Programme Tracker.`,
+                        word_report_url: wordUrl,
+                        excel_report_url: excelUrl
+                    };
+                    
+                    await this.emailjs.send('YOUR_EMAILJS_SERVICE_ID', 'YOUR_EMAILJS_TEMPLATE_ID', emailParams);
+                    
+                    showStatusMessage("Report sent by email successfully!");
+                    return true;
+                } catch (error) {
+                    console.error("Error sending email report:", error);
+                    showStatusMessage("Failed to send email report", 'error');
+                    return false;
+                }
+            }
+
+            downloadBlob(blob, fileName) {
+                const link = document.createElement('a');
+                const url = URL.createObjectURL(blob);
+                link.href = url;
+                link.download = fileName;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                URL.revokeObjectURL(url);
+            }
+        }
+
+        const reportGenerator = new ReportGenerator();
+
+        // ====================== DEBUGGING UTILITIES ======================
+        class DebugUtils {
+            static logFirestoreData(collectionName) {
+                return db.collection(collectionName)
+                    .get()
+                    .then(snapshot => {
+                        const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                        console.log(`${collectionName} data:`, data);
+                        return data;
+                    });
+            }
+
+            static showDataDebugInfo() {
+                const debugContainer = document.createElement('div');
+                debugContainer.className = 'debug-info';
+                debugContainer.innerHTML = `
+                    <h3>Debug Information</h3>
+                    <p><strong>Current User:</strong> ${currentUser.username || 'Not logged in'}</p>
+                    <p><strong>Tasks Count:</strong> ${tasks.length}</p>
+                    <p><strong>Meetings Count:</strong> ${meetings.length}</p>
+                    <p><strong>Last Sync:</strong> ${new Date().toLocaleString()}</p>
+                `;
+                
+                document.body.appendChild(debugContainer);
+                setTimeout(() => {
+                    document.body.removeChild(debugContainer);
+                }, 10000);
+            }
+
+            static logStorageUsage() {
+                return storage.ref().listAll()
+                    .then(res => {
+                        let totalSize = 0;
+                        res.items.forEach(itemRef => {
+                            itemRef.getMetadata().then(metadata => {
+                                totalSize += metadata.size;
+                            });
+                        });
+                        console.log(`Storage usage: ${(totalSize / (1024 * 1024)).toFixed(2)} MB`);
+                        return totalSize;
+                    });
+            }
+        }
+
+        // ====================== TASK INTEGRATION ======================
+        // Modify task functions to use Firestore
+        
+        async function saveTask() {
+            const isEditing = currentEditId !== null;
+            const requiredPermission = isEditing ? 'edit' : 'add';
+            
+            if (!checkPermission(requiredPermission)) return;
+            
+            const formData = {
+                department: document.getElementById('taskDepartment').value.trim(),
+                status: document.getElementById('taskStatus').value.trim(),
+                remarks: document.getElementById('taskRemarks').value.trim(),
+                from: document.getElementById('taskFrom').value.trim(),
+                to: document.getElementById('taskTo').value.trim(),
+                startDate: document.getElementById('taskStartDate').value,
+                deliveryDate: document.getElementById('taskDeliveryDate').value,
+                priority: document.getElementById('taskPriority').value,
+                progressDetails: document.getElementById('taskProgress').value.trim(),
+                progressDate: document.getElementById('taskProgressDate').value,
+                pendingWith: document.getElementById('taskPendingWith').value.trim(),
+                nextStep: document.getElementById('taskNextStep').value.trim(),
+                userId: userSync.currentUser.uid,
+                lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
+            };
+            
+            // Validation
+            if (!formData.department || !formData.status || !formData.startDate) {
+                showStatusMessage('Please fill in all required fields (Department, Status, Start Date)', 'error');
+                return;
+            }
+            
+            try {
+                if (currentEditId) {
+                    // Edit existing task
+                    await db.collection('tasks').doc(currentEditId).update(formData);
+                    showStatusMessage('Task updated successfully!');
+                } else {
+                    // Add new task
+                    await db.collection('tasks').add(formData);
+                    showStatusMessage('Task added successfully!');
+                }
+                
+                hideModal();
+                // No need to manually update tasks array - the snapshot listener will handle it
+                
+            } catch (error) {
+                console.error('Error saving task:', error);
+                showStatusMessage('Error saving task. Please try again.', 'error');
+            }
+        }
+
+        async function deleteTask(id) {
+            if (!checkPermission('delete')) return;
+            
+            if (confirm('Are you sure you want to delete this task?')) {
+                try {
+                    await db.collection('tasks').doc(id).delete();
+                    showStatusMessage('Task deleted successfully!');
+                } catch (error) {
+                    console.error("Error deleting task:", error);
+                    showStatusMessage("Failed to delete task", 'error');
+                }
+            }
+        }
+
+        // ====================== MEETING INTEGRATION ======================
+        // Modify meeting functions to use Firestore
+        
+        async function saveMeeting() {
+            const isEditing = currentEditMeetingId !== null;
+            const requiredPermission = isEditing ? 'edit' : 'add';
+            
+            if (!checkPermission(requiredPermission)) return;
+            
+            const formData = {
+                title: document.getElementById('meetingTitle').value.trim(),
+                date: document.getElementById('meetingDate').value,
+                departments: document.getElementById('meetingDepartments').value.trim(),
+                chairperson: document.getElementById('meetingChairperson').value.trim(),
+                attendees: document.getElementById('meetingAttendees').value.trim(),
+                objective: document.getElementById('meetingObjective').value.trim(),
+                discussion: document.getElementById('meetingDiscussion').value.trim(),
+                decisions: document.getElementById('meetingDecisions').value.trim(),
+                actionItems: document.getElementById('meetingActionItems').value.trim(),
+                nextSteps: document.getElementById('meetingNextSteps').value.trim(),
+                userId: userSync.currentUser.uid,
+                lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
+            };
+            
+            // Validation
+            if (!formData.title || !formData.date || !formData.attendees || !formData.objective) {
+                showStatusMessage('Please fill in all required fields (Title, Date, Attendees, Objective)', 'error');
+                return;
+            }
+            
+            try {
+                if (currentEditMeetingId) {
+                    // Edit existing meeting
+                    await db.collection('meetings').doc(currentEditMeetingId).update(formData);
+                    showStatusMessage('Meeting updated successfully!');
+                } else {
+                    // Add new meeting
+                    await db.collection('meetings').add(formData);
+                    showStatusMessage('Meeting added successfully!');
+                }
+                
+                hideMeetingModal();
+                // No need to manually update meetings array - the snapshot listener will handle it
+                
+            } catch (error) {
+                console.error('Error saving meeting:', error);
+                showStatusMessage('Error saving meeting. Please try again.', 'error');
+            }
+        }
+
+        async function deleteMeeting(id) {
+            if (!checkPermission('delete')) return;
+            
+            if (confirm('Are you sure you want to delete this meeting record?')) {
+                try {
+                    await db.collection('meetings').doc(id).delete();
+                    showStatusMessage('Meeting deleted successfully!');
+                } catch (error) {
+                    console.error("Error deleting meeting:", error);
+                    showStatusMessage("Failed to delete meeting", 'error');
+                }
+            }
+        }
+
+        // ====================== AUTHENTICATION INTEGRATION ======================
+        async function login() {
+            const username = document.getElementById('loginUsername').value.trim();
+            const password = document.getElementById('loginPassword').value;
+            
+            if (!username || !password) {
+                showError('loginError', 'Please enter both username and password');
+                return;
+            }
+            
+            try {
+                // Use Firebase Authentication
+                const userCredential = await auth.signInWithEmailAndPassword(
+                    `${username}@sikkiminspires.in`, // Using a domain pattern for emails
+                    password
+                );
+                
+                const user = userCredential.user;
+                
+                // Get user role from Firestore
+                const userDoc = await db.collection('users').doc(user.uid).get();
+                if (!userDoc.exists) {
+                    throw new Error("User not found in database");
+                }
+                
+                const userData = userDoc.data();
+                
+                // Update current user
+                currentUser.username = username;
+                currentUser.uid = user.uid;
+                currentUser.role = userData.role;
+                currentUser.name = userData.name || username;
+                currentUser.permissions = roleConfig[userData.role].permissions;
+                
+                // Update UI
+                updateUserInterface();
+                
+                // Hide login overlay
+                document.getElementById('loginOverlay').style.display = 'none';
+                
+                // Initialize the app
+                initializeApp();
+                
+                showStatusMessage(`Welcome, ${currentUser.name}! You are logged in as ${roleConfig[currentUser.role].name}.`);
+                
+            } catch (error) {
+                console.error("Login error:", error);
+                showError('loginError', 'Invalid username or password');
+            }
+        }
+
+        async function logout() {
+            if (confirm('Are you sure you want to logout?')) {
+                try {
+                    await auth.signOut();
+                    currentUser = { username: null, role: null, name: '', permissions: {} };
+                    
+                    // Reset login form
+                    document.getElementById('loginUsername').value = '';
+                    document.getElementById('loginPassword').value = '';
+                    hideError('loginError');
+                    
+                    // Hide settings menu
+                    hideSettingsMenu();
+                    
+                    // Show login overlay
+                    document.getElementById('loginOverlay').style.display = 'flex';
+                    
+                } catch (error) {
+                    console.error("Logout error:", error);
+                    showStatusMessage("Error during logout", 'error');
+                }
+            }
+        }
+
+        async function changePassword() {
+            const currentPassword = document.getElementById('currentPassword').value;
+            const newPassword = document.getElementById('newPassword').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            
+            // Validate new password
+            const validation = validatePassword(newPassword);
+            if (!validation.valid) {
+                showError('passwordError', validation.message);
+                return;
+            }
+            
+            // Check password confirmation
+            if (newPassword !== confirmPassword) {
+                showError('passwordError', 'New passwords do not match');
+                return;
+            }
+            
+            try {
+                // Reauthenticate user
+                const credential = firebase.auth.EmailAuthProvider.credential(
+                    `${currentUser.username}@sikkiminspires.in`,
+                    currentPassword
+                );
+                
+                await auth.currentUser.reauthenticateWithCredential(credential);
+                
+                // Update password
+                await auth.currentUser.updatePassword(newPassword);
+                
+                showSuccess('passwordSuccess', 'Password changed successfully!');
+                
+                // Clear form after 2 seconds and close modal
+                setTimeout(() => {
+                    hideChangePasswordModal();
+                }, 2000);
+                
+            } catch (error) {
+                console.error("Password change error:", error);
+                showError('passwordError', error.message || 'Failed to change password');
+            }
+        }
+
+        // ====================== REPORT GENERATION UI ======================
+        // Add these functions to your existing code
+        function showReportGenerationModal() {
+            const modalContent = `
+                <h2>Generate Report</h2>
+                <div class="form-group">
+                    <label for="reportType">Report Type</label>
+                    <select id="reportType">
+                        <option value="tasks">Tasks Report</option>
+                        <option value="meetings">Meetings Report</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="reportFormat">Format</label>
+                    <select id="reportFormat">
+                        <option value="word">Word Document</option>
+                        <option value="excel">Excel Spreadsheet</option>
+                        <option value="both">Both Formats</option>
+                        <option value="email">Email Report</option>
+                    </select>
+                </div>
+                <div class="form-group" id="emailFieldGroup" style="display: none;">
+                    <label for="recipientEmail">Recipient Email</label>
+                    <input type="email" id="recipientEmail" placeholder="Enter recipient email">
+                </div>
+                <div class="btn-group">
+                    <button class="btn" onclick="generateReport()">Generate</button>
+                    <button class="btn btn-secondary" onclick="hideReportModal()">Cancel</button>
+                </div>
+            `;
+            
+            // Create or update modal
+            let modal = document.getElementById('reportModal');
+            if (!modal) {
+                modal = document.createElement('div');
+                modal.id = 'reportModal';
+                modal.className = 'modal';
+                modal.innerHTML = `<div class="modal-content">${modalContent}</div>`;
+                document.body.appendChild(modal);
+            } else {
+                modal.querySelector('.modal-content').innerHTML = modalContent;
+            }
+            
+            // Show email field when email option is selected
+            document.getElementById('reportFormat').addEventListener('change', function() {
+                document.getElementById('emailFieldGroup').style.display = 
+                    this.value === 'email' ? 'block' : 'none';
+            });
+            
+            modal.classList.add('show');
+        }
+
+        function hideReportModal() {
+            document.getElementById('reportModal').classList.remove('show');
+        }
+
+        async function generateReport() {
+            const reportType = document.getElementById('reportType').value;
+            const format = document.getElementById('reportFormat').value;
+            const recipientEmail = document.getElementById('recipientEmail')?.value;
+            
+            const data = reportType === 'tasks' ? tasks : meetings;
+            
+            try {
+                showStatusMessage(`Generating ${reportType} report...`);
+                
+                if (format === 'word' || format === 'both') {
+                    await reportGenerator.generateWordReport(data, reportType);
+                }
+                
+                if (format === 'excel' || format === 'both') {
+                    await reportGenerator.generateExcelReport(data, reportType);
+                }
+                
+                if (format === 'email') {
+                    if (!recipientEmail) {
+                        showStatusMessage('Please enter recipient email', 'error');
+                        return;
+                    }
+                    await reportGenerator.sendEmailReport(data, reportType, recipientEmail);
+                }
+                
+                hideReportModal();
+                showStatusMessage('Report generated successfully!');
+                
+            } catch (error) {
+                console.error("Report generation error:", error);
+                showStatusMessage('Failed to generate report', 'error');
+            }
+        }
+
+        // Add report generation button to your UI (in header or settings menu)
+        function addReportButton() {
+            const header = document.querySelector('.header-content');
+            if (!header) return;
+            
+            const reportBtn = document.createElement('button');
+            reportBtn.className = 'btn';
+            reportBtn.innerHTML = '📊 Generate Report';
+            reportBtn.onclick = showReportGenerationModal;
+            
+            header.appendChild(reportBtn);
+        }
+
+        // ====================== DEBUGGING TOOLS ======================
+        // Add debugging tools to your UI
+        function addDebugTools() {
+            const debugBtn = document.createElement('button');
+            debugBtn.className = 'btn btn-secondary';
+            debugBtn.innerHTML = '🐛 Debug';
+            debugBtn.style.position = 'fixed';
+            debugBtn.style.bottom = '20px';
+            debugBtn.style.right = '20px';
+            debugBtn.style.zIndex = '1000';
+            debugBtn.onclick = function() {
+                DebugUtils.showDataDebugInfo();
+                DebugUtils.logStorageUsage();
+                DebugUtils.logFirestoreData('tasks');
+                DebugUtils.logFirestoreData('meetings');
+            };
+            
+            document.body.appendChild(debugBtn);
+        }
+
+        // ====================== INITIALIZATION ======================
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Application initialized');
+            
+            // Start with login screen
+            document.getElementById('loginOverlay').style.display = 'flex';
+            
+            // Add report generation button if user has permission
+            if (hasPermission('view')) {
+                addReportButton();
+                addDebugTools();
+            }
+            
+            // Initialize debug info
+            DebugUtils.showDataDebugInfo();
+        });
+
+        // ====================== TASK INTEGRATION (34 TASKS) ======================
+        // Here's how to integrate all 34 tasks - we'll modify the task management functions
+        // to handle the specific requirements of the Sikkim INSPIRES programme
+
+        // 1. First, define the 34 tasks with their metadata
+        const predefinedTasks = [
+            {
+                id: 1,
+                department: "C&ID",
+                defaultStatus: "Convergence discussion between EEPF and Innovation Hub completed and TSA has shared the Scope of Work for Lead Incubation Partner with PMU for review.",
+                defaultRemarks: "With PMU",
+                from: "PMU",
+                to: "C&ID",
+                startDate: "2025-08-06",
+                deliveryDate: "2025-08-20",
+                priority: "high",
+                category: "Innovation Hub"
+            },
+            // Add the remaining 33 tasks with their specific details
+            // Each task should have department, default status, from/to, dates, etc.
+            // ...
+            
+            {
+                id: 34,
+                department: "WCDD",
+                defaultStatus: "Finalizing the selection of training providers for women entrepreneurship programs.",
+                defaultRemarks: "Under evaluation",
+                from: "PMU",
+                to: "WCDD",
+                startDate: "2025-08-10",
+                deliveryDate: "2025-09-15",
+                priority: "medium",
+                category: "Women Entrepreneurship"
+            }
+        ];
+
+        // 2. Add function to load predefined tasks
+        function loadPredefinedTasks() {
+            if (!checkPermission('add')) return;
+            
+            const modalContent = `
+                <h2>Load Predefined Tasks</h2>
+                <p>Select which predefined tasks to add to your tracker:</p>
+                <div style="max-height: 400px; overflow-y: auto;">
+                    ${predefinedTasks.map(task => `
+                        <div style="margin-bottom: 10px; padding: 10px; border: 1px solid #e5e7eb; border-radius: 5px;">
+                            <input type="checkbox" id="task-${task.id}" checked>
+                            <label for="task-${task.id}">
+                                <strong>${task.department}</strong>: ${task.defaultStatus.substring(0, 50)}...
+                            </label>
+                        </div>
+                    `).join('')}
+                </div>
+                <div class="btn-group" style="margin-top: 20px;">
+                    <button class="btn" onclick="addSelectedPredefinedTasks()">Add Selected Tasks</button>
+                    <button class="btn btn-secondary" onclick="hidePredefinedTasksModal()">Cancel</button>
+                </div>
+            `;
+            
+            let modal = document.getElementById('predefinedTasksModal');
+            if (!modal) {
+                modal = document.createElement('div');
+                modal.id = 'predefinedTasksModal';
+                modal.className = 'modal';
+                modal.innerHTML = `<div class="modal-content">${modalContent}</div>`;
+                document.body.appendChild(modal);
+            } else {
+                modal.querySelector('.modal-content').innerHTML = modalContent;
+            }
+            
+            modal.classList.add('show');
+        }
+
+        async function addSelectedPredefinedTasks() {
+            const checkboxes = document.querySelectorAll('#predefinedTasksModal input[type="checkbox"]:checked');
+            
+            if (checkboxes.length === 0) {
+                showStatusMessage('No tasks selected', 'error');
+                return;
+            }
+            
+            try {
+                showStatusMessage(`Adding ${checkboxes.length} tasks...`);
+                
+                const batch = db.batch();
+                const tasksRef = db.collection('tasks');
+                
+                checkboxes.forEach(checkbox => {
+                    const taskId = checkbox.id.split('-')[1];
+                    const task = predefinedTasks.find(t => t.id == taskId);
+                    
+                    if (task) {
+                        const newTaskRef = tasksRef.doc();
+                        batch.set(newTaskRef, {
+                            ...task,
+                            status: task.defaultStatus,
+                            remarks: task.defaultRemarks,
+                            userId: userSync.currentUser.uid,
+                            createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                            lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
+                        });
+                    }
+                });
+                
+                await batch.commit();
+                showStatusMessage(`${checkboxes.length} tasks added successfully!`);
+                hidePredefinedTasksModal();
+                
+            } catch (error) {
+                console.error("Error adding predefined tasks:", error);
+                showStatusMessage("Failed to add tasks", 'error');
+            }
+        }
+
+        function hidePredefinedTasksModal() {
+            document.getElementById('predefinedTasksModal').classList.remove('show');
+        }
+
+        // 3. Add button to load predefined tasks
+        function addPredefinedTasksButton() {
+            const header = document.querySelector('.header-content');
+            if (!header) return;
+            
+            const loadTasksBtn = document.createElement('button');
+            loadTasksBtn.className = 'btn btn-secondary';
+            loadTasksBtn.innerHTML = '📋 Load Predefined Tasks';
+            loadTasksBtn.onclick = loadPredefinedTasks;
+            
+            header.appendChild(loadTasksBtn);
+        }
+
+        // Initialize the predefined tasks button
+        if (hasPermission('add')) {
+            addPredefinedTasksButton();
+        }
+
+        // ====================== CATEGORY FILTERS ======================
+        // Add category filtering for the 34 tasks
+        function addCategoryFilter() {
+            const filters = document.querySelector('.filters-grid');
+            if (!filters) return;
+            
+            const categoryFilter = document.createElement('select');
+            categoryFilter.id = 'categoryFilter';
+            categoryFilter.onchange = filterTasks;
+            
+            // Get unique categories from predefined tasks
+            const categories = [...new Set(predefinedTasks.map(task => task.category))];
+            
+            categoryFilter.innerHTML = `
+                <option value="all">All Categories</option>
+                ${categories.map(cat => `<option value="${cat}">${cat}</option>`).join('')}
+            `;
+            
+            filters.appendChild(categoryFilter);
+        }
+
+        // Modify filterTasks to include category filter
+        function filterTasks() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const departmentFilter = document.getElementById('departmentFilter').value;
+            const priorityFilter = document.getElementById('priorityFilter').value;
+            const categoryFilter = document.getElementById('categoryFilter')?.value || 'all';
+            const sortBy = document.getElementById('sortBy').value;
+            
+            let filtered = tasks.filter(task => {
+                const matchesSearch = task.status.toLowerCase().includes(searchTerm) ||
+                                   task.department.toLowerCase().includes(searchTerm) ||
+                                   (task.remarks && task.remarks.toLowerCase().includes(searchTerm)) ||
+                                   (task.pendingWith && task.pendingWith.toLowerCase().includes(searchTerm));
+                const matchesDepartment = departmentFilter === 'all' || task.department === departmentFilter;
+                const matchesPriority = priorityFilter === 'all' || getTaskPriority(task) === priorityFilter;
+                const matchesCategory = categoryFilter === 'all' || 
+                                      (task.category && task.category === categoryFilter);
+                
+                return matchesSearch && matchesDepartment && matchesPriority && matchesCategory;
+            });
+
+            // Sort
+            filtered.sort((a, b) => {
+                if (sortBy === 'deliveryDate') {
+                    if (!a.deliveryDate && !b.deliveryDate) return 0;
+                    if (!a.deliveryDate) return 1;
+                    if (!b.deliveryDate) return -1;
+                    return new Date(a.deliveryDate) - new Date(b.deliveryDate);
+                }
+                if (sortBy === 'department') {
+                    return a.department.localeCompare(b.department);
+                }
+                return a.id - b.id;
+            });
+
+            renderTasks(filtered);
+        }
+
+        // Initialize category filter
+        addCategoryFilter();
+
+        // ====================== TASK TEMPLATES ======================
+        // Add function to save task as template
+        async function saveTaskAsTemplate() {
+            if (!checkPermission('add')) return;
+            
+            const taskData = {
+                department: document.getElementById('taskDepartment').value.trim(),
+                status: document.getElementById('taskStatus').value.trim(),
+                remarks: document.getElementById('taskRemarks').value.trim(),
+                from: document.getElementById('taskFrom').value.trim(),
+                to: document.getElementById('taskTo').value.trim(),
+                priority: document.getElementById('taskPriority').value,
+                category: prompt("Enter a category name for this template:"),
+                userId: userSync.currentUser.uid,
+                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            };
+            
+            if (!taskData.category) return;
+            
+            try {
+                await db.collection('taskTemplates').add(taskData);
+                showStatusMessage('Task template saved successfully!');
+            } catch (error) {
+                console.error("Error saving task template:", error);
+                showStatusMessage("Failed to save template", 'error');
+            }
+        }
+
+        // Add button to save as template in task modal
+        function addTemplateButtonToModal() {
+            const btnGroup = document.querySelector('#taskModal .btn-group');
+            if (!btnGroup) return;
+            
+            const templateBtn = document.createElement('button');
+            templateBtn.className = 'btn btn-secondary';
+            templateBtn.textContent = '💾 Save as Template';
+            templateBtn.onclick = saveTaskAsTemplate;
+            
+            btnGroup.insertBefore(templateBtn, btnGroup.firstChild);
+        }
+
+        // Initialize template button
+        addTemplateButtonToModal();
+
+        // ====================== TASK DEPENDENCIES ======================
+        // Add function to set task dependencies
+        async function setTaskDependencies(taskId) {
+            if (!checkPermission('edit')) return;
+            
+            // Get all other tasks for dropdown
+            const otherTasks = tasks.filter(task => task.id !== taskId);
+            
+            const modalContent = `
+                <h2>Set Task Dependencies</h2>
+                <p>Select which tasks must be completed before this one:</p>
+                <div style="max-height: 300px; overflow-y: auto;">
+                    ${otherTasks.map(task => `
+                        <div style="margin-bottom: 5px;">
+                            <input type="checkbox" id="dep-${task.id}" 
+                                   ${task.dependencies && task.dependencies.includes(taskId) ? 'checked' : ''}>
+                            <label for="dep-${task.id}">
+                                ${task.department}: ${task.status.substring(0, 50)}...
+                            </label>
+                        </div>
+                    `).join('')}
+                </div>
+                <div class="btn-group" style="margin-top: 20px;">
+                    <button class="btn" onclick="saveTaskDependencies('${taskId}')">Save Dependencies</button>
+                    <button class="btn btn-secondary" onclick="hideDependenciesModal()">Cancel</button>
+                </div>
+            `;
+            
+            let modal = document.getElementById('dependenciesModal');
+            if (!modal) {
+                modal = document.createElement('div');
+                modal.id = 'dependenciesModal';
+                modal.className = 'modal';
+                modal.innerHTML = `<div class="modal-content">${modalContent}</div>`;
+                document.body.appendChild(modal);
+            } else {
+                modal.querySelector('.modal-content').innerHTML = modalContent;
+            }
+            
+            modal.classList.add('show');
+        }
+
+        async function saveTaskDependencies(taskId) {
+            const checkboxes = document.querySelectorAll('#dependenciesModal input[type="checkbox"]:checked');
+            const dependencies = Array.from(checkboxes).map(cb => cb.id.split('-')[1]);
+            
+            try {
+                await db.collection('tasks').doc(taskId).update({
+                    dependencies,
+                    lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                showStatusMessage('Dependencies updated successfully!');
+                hideDependenciesModal();
+            } catch (error) {
+                console.error("Error updating dependencies:", error);
+                showStatusMessage("Failed to update dependencies", 'error');
+            }
+        }
+
+        function hideDependenciesModal() {
+            document.getElementById('dependenciesModal').classList.remove('show');
+        }
+
+        // Add dependencies button to task row
+        function addDependenciesButtonToTask(taskId) {
+            return `<button class="btn btn-sm" onclick="setTaskDependencies('${taskId}')">🔗</button>`;
+        }
+
+        // Modify renderTasks to include dependencies button
+        // (Add this button to the actions column if user has edit permission)
+
+        // ====================== TASK HISTORY ======================
+        // Add function to view task history
+        async function viewTaskHistory(taskId) {
+            try {
+                const historySnap = await db.collection('taskHistory')
+                    .where('taskId', '==', taskId)
+                    .orderBy('timestamp', 'desc')
+                    .get();
+                
+                const history = historySnap.docs.map(doc => doc.data());
+                
+                const modalContent = `
+                    <h2>Task History</h2>
+                    <div style="max-height: 400px; overflow-y: auto;">
+                        ${history.length > 0 ? 
+                            history.map(entry => `
+                                <div style="margin-bottom: 15px; padding: 10px; border-bottom: 1px solid #e5e7eb;">
+                                    <div><strong>${new Date(entry.timestamp?.toDate()).toLocaleString()}</strong></div>
+                                    <div>Changed by: ${entry.changedBy || 'System'}</div>
+                                    <div style="margin-top: 5px;">
+                                        ${Object.entries(entry.changes).map(([field, values]) => `
+                                            <div>
+                                                <span style="font-weight: 500;">${field}:</span>
+                                                <span style="color: #dc2626; text-decoration: line-through;">${values.old || 'N/A'}</span>
+                                                <span style="color: #16a34a;">→ ${values.new || 'N/A'}</span>
+                                            </div>
+                                        `).join('')}
+                                    </div>
+                                </div>
+                            `).join('') :
+                            '<p>No history available for this task</p>'
+                        }
+                    </div>
+                    <div class="btn-group" style="margin-top: 20px;">
+                        <button class="btn btn-secondary" onclick="hideHistoryModal()">Close</button>
+                    </div>
+                `;
+                
+                let modal = document.getElementById('historyModal');
+                if (!modal) {
+                    modal = document.createElement('div');
+                    modal.id = 'historyModal';
+                    modal.className = 'modal';
+                    modal.innerHTML = `<div class="modal-content">${modalContent}</div>`;
+                    document.body.appendChild(modal);
+                } else {
+                    modal.querySelector('.modal-content').innerHTML = modalContent;
+                }
+                
+                modal.classList.add('show');
+                
+            } catch (error) {
+                console.error("Error fetching task history:", error);
+                showStatusMessage("Failed to load task history", 'error');
+            }
+        }
+
+        function hideHistoryModal() {
+            document.getElementById('historyModal').classList.remove('show');
+        }
+
+        // Add history button to task row
+        function addHistoryButtonToTask(taskId) {
+            return `<button class="btn btn-sm" onclick="viewTaskHistory('${taskId}')">🕒</button>`;
+        }
+
+        // ====================== BULK ACTIONS ======================
+        // Add function for bulk task updates
+        function showBulkActionsModal() {
+            if (!checkPermission('edit')) return;
+            
+            const modalContent = `
+                <h2>Bulk Task Actions</h2>
+                <div class="form-group">
+                    <label for="bulkAction">Action</label>
+                    <select id="bulkAction">
+                        <option value="status">Update Status</option>
+                        <option value="priority">Update Priority</option>
+                        <option value="department">Update Department</option>
+                        <option value="progress">Update Progress</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="bulkValue">New Value</label>
+                    <input type="text" id="bulkValue" placeholder="Enter new value">
+                </div>
+                <div class="form-group">
+                    <label for="bulkRemarks">Remarks (optional)</label>
+                    <input type="text" id="bulkRemarks" placeholder="Enter remarks">
+                </div>
+                <div class="btn-group">
+                    <button class="btn" onclick="applyBulkAction()">Apply to Selected</button>
+                    <button class="btn btn-secondary" onclick="hideBulkActionsModal()">Cancel</button>
+                </div>
+            `;
+            
+            let modal = document.getElementById('bulkActionsModal');
+            if (!modal) {
+                modal = document.createElement('div');
+                modal.id = 'bulkActionsModal';
+                modal.className = 'modal';
+                modal.innerHTML = `<div class="modal-content">${modalContent}</div>`;
+                document.body.appendChild(modal);
+            } else {
+                modal.querySelector('.modal-content').innerHTML = modalContent;
+            }
+            
+            modal.classList.add('show');
+        }
+
+        async function applyBulkAction() {
+            const action = document.getElementById('bulkAction').value;
+            const value = document.getElementById('bulkValue').value.trim();
+            const remarks = document.getElementById('bulkRemarks').value.trim();
+            
+            if (!value) {
+                showStatusMessage('Please enter a value for the action', 'error');
+                return;
+            }
+            
+            // Get selected tasks (you would need to add checkboxes to your task rows)
+            const selectedTasks = Array.from(document.querySelectorAll('#tasksTableBody input[type="checkbox"]:checked'))
+                .map(checkbox => checkbox.closest('tr').dataset.taskId);
+            
+            if (selectedTasks.length === 0) {
+                showStatusMessage('No tasks selected', 'error');
+                return;
+            }
+            
+            try {
+                showStatusMessage(`Updating ${selectedTasks.length} tasks...`);
+                
+                const batch = db.batch();
+                const tasksRef = db.collection('tasks');
+                
+                selectedTasks.forEach(taskId => {
+                    const updateData = {
+                        lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
+                    };
+                    
+                    if (remarks) {
+                        updateData.remarks = remarks;
+                    }
+                    
+                    switch(action) {
+                        case 'status':
+                            updateData.status = value;
+                            break;
+                        case 'priority':
+                            updateData.priority = value;
+                            break;
+                        case 'department':
+                            updateData.department = value;
+                            break;
+                        case 'progress':
+                            updateData.progressDetails = value;
+                            updateData.progressDate = new Date().toISOString().split('T')[0];
+                            break;
+                    }
+                    
+                    batch.update(tasksRef.doc(taskId), updateData);
+                });
+                
+                await batch.commit();
+                showStatusMessage(`${selectedTasks.length} tasks updated successfully!`);
+                hideBulkActionsModal();
+                
+            } catch (error) {
+                console.error("Bulk update error:", error);
+                showStatusMessage("Failed to update tasks", 'error');
+            }
+        }
+
+        function hideBulkActionsModal() {
+            document.getElementById('bulkActionsModal').classList.remove('show');
+        }
+
+        // Add bulk actions button to UI
+        function addBulkActionsButton() {
+            const header = document.querySelector('.header-content');
+            if (!header) return;
+            
+            const bulkBtn = document.createElement('button');
+            bulkBtn.className = 'btn btn-secondary';
+            bulkBtn.innerHTML = '🧰 Bulk Actions';
+            bulkBtn.onclick = showBulkActionsModal;
+            
+            header.appendChild(bulkBtn);
+        }
+
+        // Initialize bulk actions button
+        if (hasPermission('edit')) {
+            addBulkActionsButton();
+        }
+
+        // ====================== TASK NOTIFICATIONS ======================
+        // Add function to notify about upcoming deadlines
+        async function checkDeadlinesAndNotify() {
+            if (!hasPermission('view')) return;
+            
+            const now = new Date();
+            const threshold = new Date(now.getTime() + 3 * 24 * 60 * 60 * 1000); // 3 days from now
+            
+            try {
+                const snapshot = await db.collection('tasks')
+                    .where('userId', '==', userSync.currentUser.uid)
+                    .where('deliveryDate', '>=', now.toISOString().split('T')[0])
+                    .where('deliveryDate', '<=', threshold.toISOString().split('T')[0])
+                    .get();
+                
+                const upcomingTasks = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                
+                if (upcomingTasks.length > 0) {
+                    const taskList = upcomingTasks.map(task => 
+                        `${task.department}: ${task.status.substring(0, 30)}... (Due: ${task.deliveryDate})`
+                    ).join('\n');
+                    
+                    showStatusMessage(`You have ${upcomingTasks.length} tasks due in the next 3 days:\n${taskList}`);
+                    
+                    // Optionally send email notification
+                    if (confirm('Would you like to receive an email reminder about these tasks?')) {
+                        await reportGenerator.sendEmailReport(
+                            upcomingTasks,
+                            'tasks',
+                            currentUser.username + '@sikkiminspires.in',
+                            'Upcoming Task Deadlines'
+                        );
+                    }
+                }
+            } catch (error) {
+                console.error("Error checking deadlines:", error);
+            }
+        }
+
+        // Check deadlines periodically (every 6 hours)
+        setInterval(checkDeadlinesAndNotify, 6 * 60 * 60 * 1000);
+        // Also check on initial load
+        if (userSync.currentUser) {
+            checkDeadlinesAndNotify();
+        }
+
+        // ====================== TASK COMMENTS ======================
+        // Add function to add comments to tasks
+        async function addTaskComment(taskId) {
+            const comment = prompt('Enter your comment:');
+            if (!comment) return;
+            
+            try {
+                await db.collection('taskComments').add({
+                    taskId,
+                    comment,
+                    userId: userSync.currentUser.uid,
+                    userName: currentUser.name,
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                
+                showStatusMessage('Comment added successfully!');
+            } catch (error) {
+                console.error("Error adding comment:", error);
+                showStatusMessage("Failed to add comment", 'error');
+            }
+        }
+
+        async function viewTaskComments(taskId) {
+            try {
+                const commentsSnap = await db.collection('taskComments')
+                    .where('taskId', '==', taskId)
+                    .orderBy('timestamp', 'desc')
+                    .get();
+                
+                const comments = commentsSnap.docs.map(doc => doc.data());
+                
+                const modalContent = `
+                    <h2>Task Comments</h2>
+                    <div style="max-height: 300px; overflow-y: auto; margin-bottom: 15px;">
+                        ${comments.length > 0 ? 
+                            comments.map(comment => `
+                                <div style="margin-bottom: 10px; padding: 10px; background: #f9fafb; border-radius: 5px;">
+                                    <div style="font-weight: 500;">${comment.userName} - ${new Date(comment.timestamp?.toDate()).toLocaleString()}</div>
+                                    <div style="margin-top: 5px;">${comment.comment}</div>
+                                </div>
+                            `).join('') :
+                            '<p>No comments yet</p>'
+                        }
+                    </div>
+                    <div class="form-group">
+                        <label for="newComment">Add New Comment</label>
+                        <textarea id="newComment" rows="3" style="width: 100%;"></textarea>
+                    </div>
+                    <div class="btn-group">
+                        <button class="btn" onclick="saveNewComment('${taskId}')">Add Comment</button>
+                        <button class="btn btn-secondary" onclick="hideCommentsModal()">Close</button>
+                    </div>
+                `;
+                
+                let modal = document.getElementById('commentsModal');
+                if (!modal) {
+                    modal = document.createElement('div');
+                    modal.id = 'commentsModal';
+                    modal.className = 'modal';
+                    modal.innerHTML = `<div class="modal-content">${modalContent}</div>`;
+                    document.body.appendChild(modal);
+                } else {
+                    modal.querySelector('.modal-content').innerHTML = modalContent;
+                }
+                
+                modal.classList.add('show');
+                
+            } catch (error) {
+                console.error("Error fetching comments:", error);
+                showStatusMessage("Failed to load comments", 'error');
+            }
+        }
+
+        async function saveNewComment(taskId) {
+            const comment = document.getElementById('newComment').value.trim();
+            if (!comment) return;
+            
+            try {
+                await db.collection('taskComments').add({
+                    taskId,
+                    comment,
+                    userId: userSync.currentUser.uid,
+                    userName: currentUser.name,
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                
+                showStatusMessage('Comment added successfully!');
+                viewTaskComments(taskId); // Refresh the comments view
+            } catch (error) {
+                console.error("Error adding comment:", error);
+                showStatusMessage("Failed to add comment", 'error');
+            }
+        }
+
+        function hideCommentsModal() {
+            document.getElementById('commentsModal').classList.remove('show');
+        }
+
+        // Add comments button to task row
+        function addCommentsButtonToTask(taskId) {
+            return `<button class="btn btn-sm" onclick="viewTaskComments('${taskId}')">💬</button>`;
+        }
+
+        // ====================== TASK ATTACHMENTS ======================
+        // Add function to upload attachments to tasks
+        async function uploadTaskAttachment(taskId) {
+            const fileInput = document.createElement('input');
+            fileInput.type = 'file';
+            
+            fileInput.onchange = async (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+                
+                try {
+                    showStatusMessage('Uploading attachment...');
+                    
+                    // Create a reference to the file location
+                    const fileRef = storage.ref(`taskAttachments/${taskId}/${file.name}`);
+                    
+                    // Upload the file
+                    await fileRef.put(file);
+                    
+                    // Get the download URL
+                    const downloadURL = await fileRef.getDownloadURL();
+                    
+                    // Save the attachment reference to Firestore
+                    await db.collection('taskAttachments').add({
+                        taskId,
+                        name: file.name,
+                        type: file.type,
+                        size: file.size,
+                        url: downloadURL,
+                        userId: userSync.currentUser.uid,
+                        userName: currentUser.name,
+                        timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+                    
+                    showStatusMessage('Attachment uploaded successfully!');
+                    
+                } catch (error) {
+                    console.error("Error uploading attachment:", error);
+                    showStatusMessage("Failed to upload attachment", 'error');
+                }
+            };
+            
+            fileInput.click();
+        }
+
+        async function viewTaskAttachments(taskId) {
+            try {
+                const attachmentsSnap = await db.collection('taskAttachments')
+                    .where('taskId', '==', taskId)
+                    .orderBy('timestamp', 'desc')
+                    .get();
+                
+                const attachments = attachmentsSnap.docs.map(doc => doc.data());
+                
+                const modalContent = `
+                    <h2>Task Attachments</h2>
+                    <div style="max-height: 300px; overflow-y: auto; margin-bottom: 15px;">
+                        ${attachments.length > 0 ? 
+                            attachments.map(attachment => `
+                                <div style="margin-bottom: 10px; padding: 10px; background: #f9fafb; border-radius: 5px;">
+                                    <div style="font-weight: 500;">
+                                        ${attachment.name} (${(attachment.size / 1024).toFixed(1)} KB)
+                                    </div>
+                                    <div style="font-size: 0.8em; color: #6b7280;">
+                                        Uploaded by ${attachment.userName} on ${new Date(attachment.timestamp?.toDate()).toLocaleString()}
+                                    </div>
+                                    <div style="margin-top: 5px;">
+                                        <a href="${attachment.url}" target="_blank" class="btn btn-sm">Download</a>
+                                    </div>
+                                </div>
+                            `).join('') :
+                            '<p>No attachments yet</p>'
+                        }
+                    </div>
+                    <div class="btn-group">
+                        <button class="btn" onclick="uploadTaskAttachment('${taskId}')">Add Attachment</button>
+                        <button class="btn btn-secondary" onclick="hideAttachmentsModal()">Close</button>
+                    </div>
+                `;
+                
+                let modal = document.getElementById('attachmentsModal');
+                if (!modal) {
+                    modal = document.createElement('div');
+                    modal.id = 'attachmentsModal';
+                    modal.className = 'modal';
+                    modal.innerHTML = `<div class="modal-content">${modalContent}</div>`;
+                    document.body.appendChild(modal);
+                } else {
+                    modal.querySelector('.modal-content').innerHTML = modalContent;
+                }
+                
+                modal.classList.add('show');
+                
+            } catch (error) {
+                console.error("Error fetching attachments:", error);
+                showStatusMessage("Failed to load attachments", 'error');
+            }
+        }
+
+        function hideAttachmentsModal() {
+            document.getElementById('attachmentsModal').classList.remove('show');
+        }
+
+        // Add attachments button to task row
+        function addAttachmentsButtonToTask(taskId) {
+            return `<button class="btn btn-sm" onclick="viewTaskAttachments('${taskId}')">📎</button>`;
+        }
+
+        // ====================== FINAL TASK ROW INTEGRATION ======================
+        // Modify the renderTasks function to include all the new action buttons
+        // Here's how the actions column might look now:
+        /*
+        <td>
+            <div class="actions">
+                ${hasPermission('edit') ? `
+                    <button class="btn btn-sm" onclick="editTask('${task.id}')">✏️</button>
+                    ${addDependenciesButtonToTask(task.id)}
+                ` : ''}
+                ${hasPermission('delete') ? `
+                    <button class="btn btn-danger btn-sm" onclick="deleteTask('${task.id}')">🗑️</button>
+                ` : ''}
+                ${addHistoryButtonToTask(task.id)}
+                ${addCommentsButtonToTask(task.id)}
+                ${addAttachmentsButtonToTask(task.id)}
+            </div>
+        </td>
+        */
     </script>
 </body>
 </html>
