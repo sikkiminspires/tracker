@@ -4,12 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sikkim INSPIRES Programme Tracker</title>
-    <!-- Firebase SDK -->
-    <script src="https://url.uk.m.mimecastprotect.com/s/dJlzCvzAiRppwjhQfZsQkT5R?domain=gstatic.com"></script>
-    <script src="https://url.uk.m.mimecastprotect.com/s/KoGgCwABi2JJlziqhOsJJuyB?domain=gstatic.com"></script>
-    <script src="https://url.uk.m.mimecastprotect.com/s/Xm5OCxBDUznnE4FYiksykdpE?domain=gstatic.com"></script>
+    <!-- Firebase SDK v9 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/9.15.0/firebase-app-compat.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/9.15.0/firebase-auth-compat.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/9.15.0/firebase-firestore-compat.min.js"></script>
     <!-- SheetJS for Excel export -->
-    <script src="https://url.uk.m.mimecastprotect.com/s/4WGjCyDEfpqqOzuRsQsxM9IA?domain=cdnjs.cloudflare.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -71,6 +71,11 @@
         
         .btn:hover {
             background: #1d4ed8;
+        }
+        
+        .btn:disabled {
+            background: #9ca3af;
+            cursor: not-allowed;
         }
         
         .btn-secondary {
@@ -524,25 +529,6 @@
             display: none;
         }
         
-        .password-strength {
-            margin-top: 0.5rem;
-            font-size: 0.75rem;
-        }
-        
-        .strength-weak { color: #dc2626; }
-        .strength-medium { color: #f59e0b; }
-        .strength-strong { color: #16a34a; }
-        
-        .permission-warning {
-            background: #fef3c7;
-            color: #92400e;
-            padding: 0.5rem;
-            border-radius: 0.25rem;
-            font-size: 0.875rem;
-            margin: 0.5rem 0;
-            display: none;
-        }
-        
         .main-nav {
             background: white;
             border-bottom: 1px solid #e5e7eb;
@@ -584,56 +570,6 @@
         
         .tab-content.active {
             display: block;
-        }
-        
-        .task-trail {
-            background: #f8fafc;
-            border-radius: 0.375rem;
-            padding: 0.75rem;
-            margin-top: 0.5rem;
-            border-left: 3px solid #2563eb;
-        }
-        
-        .trail-entry {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            padding: 0.5rem 0;
-            border-bottom: 1px solid #e2e8f0;
-        }
-        
-        .trail-entry:last-child {
-            border-bottom: none;
-        }
-        
-        .trail-content {
-            flex: 1;
-        }
-        
-        .trail-date {
-            color: #64748b;
-            font-size: 0.75rem;
-            white-space: nowrap;
-            margin-left: 1rem;
-        }
-        
-        .trail-action {
-            font-size: 0.875rem;
-            color: #334155;
-        }
-        
-        .trail-user {
-            font-size: 0.75rem;
-            color: #64748b;
-            font-style: italic;
-        }
-        
-        .trail-toggle {
-            color: #2563eb;
-            cursor: pointer;
-            font-size: 0.75rem;
-            text-decoration: underline;
-            margin-top: 0.25rem;
         }
         
         .meeting-card {
@@ -682,23 +618,6 @@
             line-height: 1.5;
         }
         
-        .linked-tasks {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 0.5rem;
-            margin-top: 0.5rem;
-        }
-        
-        .task-link {
-            background: #dbeafe;
-            color: #1e40af;
-            padding: 0.25rem 0.5rem;
-            border-radius: 0.25rem;
-            font-size: 0.75rem;
-            text-decoration: none;
-            border: 1px solid #bfdbfe;
-        }
-        
         .report-modal {
             max-width: 600px;
         }
@@ -743,6 +662,11 @@
         .sync-error {
             background-color: #fecaca;
             color: #b91c1c;
+        }
+        
+        .sync-offline {
+            background-color: #e5e7eb;
+            color: #374151;
         }
         
         .meeting-actions {
@@ -821,30 +745,46 @@
             color: #374151;
         }
         
-        .github-actions {
-            display: flex;
-            gap: 0.5rem;
-            margin-top: 1rem;
-            padding-top: 1rem;
-            border-top: 1px solid #e5e7eb;
+        .loading-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #3498db;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
         }
         
-        .github-info {
-            background: #f3f4f6;
-            border-radius: 0.375rem;
-            padding: 1rem;
-            margin-top: 1rem;
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .offline-indicator {
+            background: #f59e0b;
+            color: white;
+            padding: 0.5rem;
+            text-align: center;
             font-size: 0.875rem;
+            display: none;
         }
         
-        .github-info p {
-            margin-bottom: 0.5rem;
-        }
-        
-        .github-links {
+        .connection-status {
             display: flex;
+            align-items: center;
             gap: 0.5rem;
-            margin-top: 0.5rem;
+            font-size: 0.75rem;
+        }
+        
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #10b981;
+        }
+        
+        .status-dot.offline {
+            background: #dc2626;
         }
         
         @media (max-width: 768px) {
@@ -890,8 +830,18 @@
 <body>
     <!-- Firebase Configuration -->
     <script>
-        // Replace with your Firebase config
-        const firebaseConfig = {
+        // Wait for Firebase to load
+        document.addEventListener('DOMContentLoaded', function() {
+            // Check if Firebase is available
+            if (typeof firebase === 'undefined') {
+                console.error('Firebase SDK failed to load');
+                document.getElementById('loginError').textContent = 'Firebase SDK failed to load. Please refresh the page.';
+                document.getElementById('loginError').style.display = 'block';
+                return;
+            }
+
+            // Replace with your Firebase config
+            const firebaseConfig = {
             apiKey: "AIzaSyAIb49WJQhX_UHHYDdo0ijmQ4R61xU8Xh8",
             authDomain: "inspirestracker.firebaseapp.com",
             projectId: "inspirestracker",
@@ -900,26 +850,41 @@
             appId: "1:711634430143:web:c9c33716d60f4a243abe0a"
         };
 
-        // Initialize Firebase
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.firestore();
-        const auth = firebase.auth();
+            try {
+                // Initialize Firebase
+                firebase.initializeApp(firebaseConfig);
+                window.db = firebase.firestore();
+                window.auth = firebase.auth();
+                
+                // Initialize the application
+                initializeApp();
+            } catch (error) {
+                console.error('Firebase initialization error:', error);
+                document.getElementById('loginError').textContent = 'Failed to initialize Firebase. Please check your configuration.';
+                document.getElementById('loginError').style.display = 'block';
+            }
+        });
     </script>
+
+    <!-- Offline Indicator -->
+    <div class="offline-indicator" id="offlineIndicator">
+        ⚠️ You are currently offline. Changes will sync when connection is restored.
+    </div>
 
     <!-- Sync Status Indicator -->
     <div class="sync-status sync-success" id="syncStatus" style="display: none;">
-        Data saved successfully!
+        Connected to Firebase
     </div>
 
     <!-- Login Overlay -->
     <div class="login-overlay" id="loginOverlay">
         <div class="login-card">
             <h2>Sikkim INSPIRES Access Control</h2>
-            <p>Please enter your credentials to access the system</p>
+            <p>Please sign in to access the system</p>
             
             <div class="access-info">
-                <h4>Access Information:</h4>
-                <div>Please contact your system administrator for login credentials.</div>
+                <h4>Firebase Authentication:</h4>
+                <div>Create an account or sign in with existing credentials. Contact your administrator for access permissions.</div>
             </div>
             
             <div class="login-form">
@@ -935,8 +900,12 @@
                 
                 <div class="error-message" id="loginError"></div>
                 
-                <button class="btn" onclick="login()" id="loginBtn" style="width: 100%; margin-top: 1rem;">
-                    Login
+                <button class="btn" onclick="signIn()" id="loginBtn" style="width: 100%; margin-top: 1rem;">
+                    Sign In
+                </button>
+                
+                <button class="btn btn-secondary" onclick="createAccount()" style="width: 100%; margin-top: 0.5rem;">
+                    Create Account
                 </button>
             </div>
         </div>
@@ -952,8 +921,7 @@
             </div>
             <div class="form-field">
                 <label for="newPassword">New Password</label>
-                <input type="password" id="newPassword" placeholder="Enter new password" oninput="checkPasswordStrength()">
-                <div class="password-strength" id="passwordStrength"></div>
+                <input type="password" id="newPassword" placeholder="Enter new password">
             </div>
             <div class="form-field">
                 <label for="confirmPassword">Confirm New Password</label>
@@ -1010,11 +978,15 @@
     </div>
 
     <!-- User Info Bar -->
-    <div class="user-info">
+    <div class="user-info" id="userInfoBar" style="display: none;">
         <div class="user-role">
             <span>Current User:</span>
-            <span class="role-badge" id="userRoleBadge">System Administrator</span>
-            <span id="userName">Admin User</span>
+            <span class="role-badge" id="userRoleBadge">User</span>
+            <span id="userName">User</span>
+            <div class="connection-status">
+                <div class="status-dot" id="connectionDot"></div>
+                <span id="connectionStatus">Connected</span>
+            </div>
         </div>
         <div class="settings-dropdown">
             <button class="btn btn-sm btn-secondary" onclick="toggleSettingsMenu()">
@@ -1023,21 +995,20 @@
             <div class="settings-menu" id="settingsMenu">
                 <button onclick="showChangePasswordModal()">🔒 Change Password</button>
                 <button onclick="showReportModal()">📊 Generate Report</button>
-                <button onclick="showGitHubModal()">🐱 GitHub Sync</button>
-                <button onclick="logout()">🚪 Logout</button>
+                <button onclick="signOut()">🚪 Sign Out</button>
             </div>
         </div>
     </div>
 
     <!-- Navigation Tabs -->
-    <div class="main-nav">
+    <div class="main-nav" id="mainNav" style="display: none;">
         <div class="nav-tabs">
             <button class="nav-tab active" onclick="switchTab('tasks')">📋 Tasks Management</button>
             <button class="nav-tab" onclick="switchTab('meetings')">📝 Meeting Minutes</button>
         </div>
     </div>
 
-    <div class="container">
+    <div class="container" id="mainContainer" style="display: none;">
         <!-- Tasks Tab Content -->
         <div class="tab-content active" id="tasksTab">
             <!-- Header -->
@@ -1048,9 +1019,6 @@
                         <p>Programme Activity Tracker</p>
                     </div>
                     <div>
-                        <div class="permission-warning" id="permissionWarning">
-                            ⚠️ You don't have permission to perform this action
-                        </div>
                         <button class="btn" onclick="showAddTaskModal()" id="addTaskBtn">
                             <span>➕</span> Add New Task
                         </button>
@@ -1267,7 +1235,10 @@
                 <input type="text" id="taskNextStep">
             </div>
             <div class="btn-group">
-                <button class="btn" onclick="saveTask()">Save Task</button>
+                <button class="btn" onclick="saveTask()">
+                    <span class="loading-spinner" id="taskSaveSpinner" style="display: none;"></span>
+                    <span id="taskSaveText">Save Task</span>
+                </button>
                 <button class="btn btn-secondary" onclick="hideTaskModal()">Cancel</button>
             </div>
         </div>
@@ -1334,251 +1305,933 @@
                 </div>
             </div>
             <div class="btn-group">
-                <button class="btn" onclick="saveMeeting()">Save Meeting</button>
+                <button class="btn" onclick="saveMeeting()">
+                    <span class="loading-spinner" id="meetingSaveSpinner" style="display: none;"></span>
+                    <span id="meetingSaveText">Save Meeting</span>
+                </button>
                 <button class="btn btn-secondary" onclick="hideMeetingModal()">Cancel</button>
             </div>
         </div>
     </div>
 
-    <!-- GitHub Sync Modal -->
-    <div class="modal" id="githubModal">
-        <div class="modal-content">
-            <h2>GitHub Sync Settings</h2>
-            <div class="form-group">
-                <label for="githubToken">GitHub Personal Access Token</label>
-                <input type="password" id="githubToken" placeholder="Enter your GitHub token">
-                <p class="text-xs text-gray mt-1">Create a token with "repo" scope at <a href="https://url.uk.m.mimecastprotect.com/s/RDk9CzEGh7QQWpIot3s90eVf?domain=github.com" target="_blank">https://url.uk.m.mimecastprotect.com/s/h0gbCA25U8LLp3FMuYsGVWCt?domain=github.com</a></p>
-            </div>
-            
-            <div class="form-group">
-                <label for="githubRepo">GitHub Repository</label>
-                <input type="text" id="githubRepo" value="sikkiminspires/tracker" placeholder="owner/repo">
-            </div>
-            
-            <div class="github-info">
-                <p><strong>GitHub Repository:</strong> <a href="https://url.uk.m.mimecastprotect.com/s/ZZTECB25UyppW9hvCxs2N9sH?domain=github.com" target="_blank">https://url.uk.m.mimecastprotect.com/s/ZZTECB25UyppW9hvCxs2N9sH?domain=github.com</a></p>
-                <p><strong>Netlify Dashboard:</strong> <a href="https://url.uk.m.mimecastprotect.com/s/gjq_CD25UyNNYKhBF7sjmizI?domain=app.netlify.com" target="_blank">https://url.uk.m.mimecastprotect.com/s/gjq_CD25UyNNYKhBF7sjmizI?domain=app.netlify.com</a></p>
-                <p><strong>Live Site:</strong> <a href="https://url.uk.m.mimecastprotect.com/s/vHaZCE25UYVV4JcyH3s7B2GZ?domain=inspirestracker.netlify.app" target="_blank">https://url.uk.m.mimecastprotect.com/s/vHaZCE25UYVV4JcyH3s7B2GZ?domain=inspirestracker.netlify.app/</a></p>
-            </div>
-            
-            <div class="github-actions">
-                <button class="btn btn-secondary" onclick="saveGitHubSettings()">Save Settings</button>
-                <button class="btn" onclick="syncWithGitHub()">Sync Data Now</button>
-                <button class="btn btn-secondary" onclick="hideGitHubModal()">Cancel</button>
-            </div>
-        </div>
-    </div>
-
     <script>
-        // User Database with Password Authentication
-        let userDatabase = {
-            "admin@inspires.com": {
-                password: 'admin123',
-                role: 'admin',
-                name: 'System Administrator',
-                lastLogin: null
-            },
-            "operator@inspires.com": {
-                password: 'op123',
-                role: 'operator', 
-                name: 'Data Entry Operator',
-                lastLogin: null
-            },
-            "viewer@inspires.com": {
-                password: 'view123',
-                role: 'viewer',
-                name: 'Viewer',
-                lastLogin: null
-            }
-        };
+        // Application State
+        let currentUser = null;
+        let tasks = [];
+        let meetings = [];
+        let actionItemsCounter = 0;
+        let currentEditId = null;
+        let currentMeetingId = null;
+        let isOnline = navigator.onLine;
+        let unsubscribeTasks = null;
+        let unsubscribeMeetings = null;
 
-        // User Access Control System
-        let currentUser = {
-            email: null,
-            role: null,
-            name: '',
-            permissions: {}
-        };
-
+        // Role configuration
         const roleConfig = {
             admin: {
-                name: 'System Administrator',
+                name: 'Administrator',
                 badge: 'role-admin',
                 permissions: {
                     view: true,
                     add: true,
                     edit: true,
                     delete: true,
-                    changePassword: true,
                     generateReports: true
                 }
             },
-            operator: {
-                name: 'Data Entry Operator',
+            user: {
+                name: 'User',
                 badge: 'role-operator',
                 permissions: {
                     view: true,
                     add: true,
-                    edit: false,
+                    edit: true,
                     delete: false,
-                    changePassword: true,
                     generateReports: true
-                }
-            },
-            viewer: {
-                name: 'Viewer',
-                badge: 'role-viewer',
-                permissions: {
-                    view: true,
-                    add: false,
-                    edit: false,
-                    delete: false,
-                    changePassword: true,
-                    generateReports: false
                 }
             }
         };
 
-        // Initialize data storage
-        let tasks = [];
-        let meetings = [];
-        let actionItemsCounter = 0;
-        let currentEditId = null;
-        let currentMeetingId = null;
+        // Initialize application after Firebase is ready
+        function initializeApp() {
+            // Initialize Firebase Auth state listener
+            window.auth.onAuthStateChanged(async (user) => {
+                if (user) {
+                    currentUser = user;
+                    await initializeUserData();
+                    showMainApp();
+                    setupRealtimeListeners();
+                } else {
+                    currentUser = null;
+                    showLoginScreen();
+                    cleanupListeners();
+                }
+            });
 
-        // Initialize data from localStorage
-        function initializeData() {
-            const savedTasks = localStorage.getItem('inspiresTasks');
-            if (savedTasks) {
-                tasks = JSON.parse(savedTasks);
-            }
-            
-            const savedMeetings = localStorage.getItem('inspiresMeetings');
-            if (savedMeetings) {
-                meetings = JSON.parse(savedMeetings);
-            }
-            
-            renderTasks();
-            renderMeetings();
-            updateStats();
+            // Network status monitoring
+            window.addEventListener('online', () => {
+                isOnline = true;
+                updateConnectionStatus();
+                showSyncStatus('Back online - syncing data...', 'sync-success');
+            });
+
+            window.addEventListener('offline', () => {
+                isOnline = false;
+                updateConnectionStatus();
+                document.getElementById('offlineIndicator').style.display = 'block';
+            });
+
+            // Add event listeners
+            setupEventListeners();
         }
 
-        // Save data to localStorage
-        function saveData() {
-            localStorage.setItem('inspiresTasks', JSON.stringify(tasks));
-            localStorage.setItem('inspiresMeetings', JSON.stringify(meetings));
-            
-            // Show sync status
-            const syncStatus = document.getElementById('syncStatus');
-            syncStatus.style.display = 'block';
-            syncStatus.className = 'sync-status sync-success';
-            syncStatus.textContent = 'Data saved successfully!';
-            
-            setTimeout(() => {
-                syncStatus.style.display = 'none';
-            }, 3000);
-        }
+        // Setup event listeners
+        function setupEventListeners() {
+            // Close settings menu when clicking outside
+            document.addEventListener('click', function(e) {
+                const dropdown = document.querySelector('.settings-dropdown');
+                if (dropdown && !dropdown.contains(e.target)) {
+                    hideSettingsMenu();
+                }
+            });
 
-        // Password utilities
-        function validatePassword(password) {
-            const minLength = 6;
-            const hasUpper = /[A-Z]/.test(password);
-            const hasLower = /[a-z]/.test(password);
-            const hasNumber = /\d/.test(password);
-            
-            if (password.length < minLength) {
-                return { valid: false, message: 'Password must be at least 6 characters long' };
-            }
-            
-            let strength = 'weak';
-            let score = 0;
-            
-            if (password.length >= 8) score++;
-            if (hasUpper) score++;
-            if (hasLower) score++;
-            if (hasNumber) score++;
-            
-            if (score >= 3) strength = 'strong';
-            else if (score >= 2) strength = 'medium';
-            
-            return { valid: true, strength, score };
-        }
+            // Close modals when clicking outside
+            document.getElementById('taskModal').addEventListener('click', function(e) {
+                if (e.target === this) {
+                    hideTaskModal();
+                }
+            });
 
-        function checkPasswordStrength() {
-            const password = document.getElementById('newPassword').value;
-            const strengthDiv = document.getElementById('passwordStrength');
-            
-            if (!password) {
-                strengthDiv.innerHTML = '';
-                return;
-            }
-            
-            const validation = validatePassword(password);
-            
-            if (!validation.valid) {
-                strengthDiv.innerHTML = `<span class="strength-weak">${validation.message}</span>`;
-                return;
-            }
-            
-            const strengthClass = `strength-${validation.strength}`;
-            const strengthText = validation.strength.charAt(0).toUpperCase() + validation.strength.slice(1);
-            
-            strengthDiv.innerHTML = `<span class="${strengthClass}">Password strength: ${strengthText}</span>`;
+            document.getElementById('meetingModal').addEventListener('click', function(e) {
+                if (e.target === this) {
+                    hideMeetingModal();
+                }
+            });
+
+            document.getElementById('changePasswordModal').addEventListener('click', function(e) {
+                if (e.target === this) {
+                    hideChangePasswordModal();
+                }
+            });
+
+            document.getElementById('reportModal').addEventListener('click', function(e) {
+                if (e.target === this) {
+                    hideReportModal();
+                }
+            });
+
+            // Form submission on Enter key
+            document.getElementById('loginEmail').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    signIn();
+                }
+            });
+
+            document.getElementById('loginPassword').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    signIn();
+                }
+            });
+
+            // Initialize connection status
+            updateConnectionStatus();
         }
 
         // Authentication functions
-        function login() {
+        async function signIn() {
             const email = document.getElementById('loginEmail').value.trim();
             const password = document.getElementById('loginPassword').value;
-            
+
             if (!email || !password) {
                 showError('loginError', 'Please enter both email and password');
                 return;
             }
-            
-            const user = userDatabase[email];
-            if (!user || user.password !== password) {
-                showError('loginError', 'Invalid email or password');
+
+            try {
+                document.getElementById('loginBtn').disabled = true;
+                document.getElementById('loginBtn').innerHTML = '<span class="loading-spinner"></span> Signing In...';
+                
+                await window.auth.signInWithEmailAndPassword(email, password);
+                hideError('loginError');
+            } catch (error) {
+                console.error('Login error:', error);
+                showError('loginError', getAuthErrorMessage(error.code));
+            } finally {
+                document.getElementById('loginBtn').disabled = false;
+                document.getElementById('loginBtn').innerHTML = 'Sign In';
+            }
+        }
+
+        async function createAccount() {
+            const email = document.getElementById('loginEmail').value.trim();
+            const password = document.getElementById('loginPassword').value;
+
+            if (!email || !password) {
+                showError('loginError', 'Please enter both email and password');
                 return;
             }
-            
-            // Successful login
-            currentUser.email = email;
-            currentUser.role = user.role;
-            currentUser.name = user.name;
-            currentUser.permissions = roleConfig[user.role].permissions;
-            
-            // Update last login
-            userDatabase[email].lastLogin = new Date().toISOString();
-            
-            // Update UI
-            updateUserInterface();
-            
-            // Hide login overlay
-            document.getElementById('loginOverlay').style.display = 'none';
-            
-            // Initialize the app
-            initializeData();
-        }
 
-        function logout() {
-            if (confirm('Are you sure you want to logout?')) {
-                currentUser = { email: null, role: null, name: '', permissions: {} };
+            if (password.length < 6) {
+                showError('loginError', 'Password must be at least 6 characters');
+                return;
+            }
+
+            try {
+                document.getElementById('loginBtn').disabled = true;
+                document.getElementById('loginBtn').innerHTML = '<span class="loading-spinner"></span> Creating Account...';
                 
-                // Reset login form
-                document.getElementById('loginEmail').value = '';
-                document.getElementById('loginPassword').value = '';
+                const userCredential = await window.auth.createUserWithEmailAndPassword(email, password);
+                
+                // Create user profile in Firestore
+                await window.db.collection('users').doc(userCredential.user.uid).set({
+                    email: email,
+                    role: 'user',
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                    lastLogin: firebase.firestore.FieldValue.serverTimestamp()
+                });
+
                 hideError('loginError');
-                
-                // Hide settings menu
-                hideSettingsMenu();
-                
-                // Show login overlay
-                document.getElementById('loginOverlay').style.display = 'flex';
+            } catch (error) {
+                console.error('Account creation error:', error);
+                showError('loginError', getAuthErrorMessage(error.code));
+            } finally {
+                document.getElementById('loginBtn').disabled = false;
+                document.getElementById('loginBtn').innerHTML = 'Sign In';
             }
         }
 
-        // Settings menu functions
+        async function signOut() {
+            if (confirm('Are you sure you want to sign out?')) {
+                try {
+                    await window.auth.signOut();
+                } catch (error) {
+                    console.error('Sign out error:', error);
+                }
+            }
+        }
+
+        async function changePassword() {
+            const currentPassword = document.getElementById('currentPassword').value;
+            const newPassword = document.getElementById('newPassword').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+
+            if (!currentPassword || !newPassword || !confirmPassword) {
+                showError('passwordError', 'Please fill in all fields');
+                return;
+            }
+
+            if (newPassword !== confirmPassword) {
+                showError('passwordError', 'New passwords do not match');
+                return;
+            }
+
+            if (newPassword.length < 6) {
+                showError('passwordError', 'New password must be at least 6 characters');
+                return;
+            }
+
+            try {
+                // Re-authenticate user
+                const credential = firebase.auth.EmailAuthProvider.credential(
+                    currentUser.email, 
+                    currentPassword
+                );
+                await currentUser.reauthenticateWithCredential(credential);
+                
+                // Update password
+                await currentUser.updatePassword(newPassword);
+                
+                showSuccess('passwordSuccess', 'Password changed successfully!');
+                
+                // Clear form and close modal after 2 seconds
+                setTimeout(() => {
+                    hideChangePasswordModal();
+                }, 2000);
+                
+            } catch (error) {
+                console.error('Password change error:', error);
+                showError('passwordError', getAuthErrorMessage(error.code));
+            }
+        }
+
+        // User data initialization
+        async function initializeUserData() {
+            try {
+                // Get or create user profile
+                const userDoc = await window.db.collection('users').doc(currentUser.uid).get();
+                
+                if (!userDoc.exists) {
+                    // Create user profile for existing auth user
+                    await window.db.collection('users').doc(currentUser.uid).set({
+                        email: currentUser.email,
+                        role: 'user',
+                        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                        lastLogin: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+                } else {
+                    // Update last login
+                    await window.db.collection('users').doc(currentUser.uid).update({
+                        lastLogin: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+                }
+
+                updateUserInterface();
+            } catch (error) {
+                console.error('Error initializing user data:', error);
+            }
+        }
+
+        async function updateUserInterface() {
+            try {
+                const userDoc = await window.db.collection('users').doc(currentUser.uid).get();
+                const userData = userDoc.data();
+                const userRole = userData?.role || 'user';
+                
+                // Update UI elements
+                const roleBadge = document.getElementById('userRoleBadge');
+                const userName = document.getElementById('userName');
+                
+                roleBadge.textContent = roleConfig[userRole].name;
+                roleBadge.className = `role-badge ${roleConfig[userRole].badge}`;
+                userName.textContent = currentUser.email;
+                
+                updateConnectionStatus();
+            } catch (error) {
+                console.error('Error updating user interface:', error);
+            }
+        }
+
+        // Real-time listeners
+        function setupRealtimeListeners() {
+            // Listen to tasks collection
+            unsubscribeTasks = window.db.collection('tasks')
+                .orderBy('createdAt', 'desc')
+                .onSnapshot((snapshot) => {
+                    tasks = snapshot.docs.map(doc => ({
+                        id: doc.id,
+                        ...doc.data()
+                    }));
+                    renderTasks();
+                    updateStats();
+                }, (error) => {
+                    console.error('Error listening to tasks:', error);
+                    showSyncStatus('Error syncing tasks', 'sync-error');
+                });
+
+            // Listen to meetings collection
+            unsubscribeMeetings = window.db.collection('meetings')
+                .orderBy('createdAt', 'desc')
+                .onSnapshot((snapshot) => {
+                    meetings = snapshot.docs.map(doc => ({
+                        id: doc.id,
+                        ...doc.data()
+                    }));
+                    renderMeetings();
+                }, (error) => {
+                    console.error('Error listening to meetings:', error);
+                    showSyncStatus('Error syncing meetings', 'sync-error');
+                });
+        }
+
+        function cleanupListeners() {
+            if (unsubscribeTasks) {
+                unsubscribeTasks();
+                unsubscribeTasks = null;
+            }
+            if (unsubscribeMeetings) {
+                unsubscribeMeetings();
+                unsubscribeMeetings = null;
+            }
+        }
+
+        // UI Management
+        function showLoginScreen() {
+            document.getElementById('loginOverlay').style.display = 'flex';
+            document.getElementById('userInfoBar').style.display = 'none';
+            document.getElementById('mainNav').style.display = 'none';
+            document.getElementById('mainContainer').style.display = 'none';
+            
+            // Clear login form
+            document.getElementById('loginEmail').value = '';
+            document.getElementById('loginPassword').value = '';
+            hideError('loginError');
+        }
+
+        function showMainApp() {
+            document.getElementById('loginOverlay').style.display = 'none';
+            document.getElementById('userInfoBar').style.display = 'flex';
+            document.getElementById('mainNav').style.display = 'block';
+            document.getElementById('mainContainer').style.display = 'block';
+        }
+
+        function updateConnectionStatus() {
+            const dot = document.getElementById('connectionDot');
+            const status = document.getElementById('connectionStatus');
+            const offlineIndicator = document.getElementById('offlineIndicator');
+            
+            if (isOnline) {
+                dot.classList.remove('offline');
+                status.textContent = 'Connected';
+                offlineIndicator.style.display = 'none';
+            } else {
+                dot.classList.add('offline');
+                status.textContent = 'Offline';
+                offlineIndicator.style.display = 'block';
+            }
+        }
+
+        // Task Management
+        async function saveTask() {
+            const formData = {
+                department: document.getElementById('taskDepartment').value,
+                status: document.getElementById('taskStatus').value,
+                remarks: document.getElementById('taskRemarks').value,
+                from: document.getElementById('taskFrom').value,
+                to: document.getElementById('taskTo').value,
+                startDate: document.getElementById('taskStartDate').value,
+                deliveryDate: document.getElementById('taskDeliveryDate').value,
+                priority: document.getElementById('taskPriority').value,
+                progressDetails: document.getElementById('taskProgress').value,
+                progressDate: document.getElementById('taskProgressDate').value,
+                pendingWith: document.getElementById('taskPendingWith').value,
+                nextStep: document.getElementById('taskNextStep').value
+            };
+
+            if (!formData.department || !formData.status || !formData.startDate) {
+                alert('Please fill in all required fields (Department, Status, Start Date)');
+                return;
+            }
+
+            try {
+                // Show loading state
+                document.getElementById('taskSaveSpinner').style.display = 'inline-block';
+                document.getElementById('taskSaveText').textContent = 'Saving...';
+
+                if (currentEditId) {
+                    // Update existing task
+                    await window.db.collection('tasks').doc(currentEditId).update({
+                        ...formData,
+                        updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+                        updatedBy: currentUser.uid
+                    });
+                } else {
+                    // Create new task
+                    await window.db.collection('tasks').add({
+                        ...formData,
+                        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                        createdBy: currentUser.uid,
+                        updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+                        updatedBy: currentUser.uid
+                    });
+                }
+
+                hideTaskModal();
+                showSyncStatus('Task saved successfully!', 'sync-success');
+            } catch (error) {
+                console.error('Error saving task:', error);
+                showSyncStatus('Error saving task', 'sync-error');
+            } finally {
+                // Reset loading state
+                document.getElementById('taskSaveSpinner').style.display = 'none';
+                document.getElementById('taskSaveText').textContent = 'Save Task';
+            }
+        }
+
+        async function deleteTask(id) {
+            if (confirm('Are you sure you want to delete this task?')) {
+                try {
+                    await window.db.collection('tasks').doc(id).delete();
+                    showSyncStatus('Task deleted successfully!', 'sync-success');
+                } catch (error) {
+                    console.error('Error deleting task:', error);
+                    showSyncStatus('Error deleting task', 'sync-error');
+                }
+            }
+        }
+
+        function editTask(id) {
+            const task = tasks.find(t => t.id === id);
+            if (!task) return;
+
+            currentEditId = id;
+            document.getElementById('modalTitle').textContent = 'Edit Task';
+
+            // Populate form
+            document.getElementById('taskDepartment').value = task.department || '';
+            document.getElementById('taskStatus').value = task.status || '';
+            document.getElementById('taskRemarks').value = task.remarks || '';
+            document.getElementById('taskFrom').value = task.from || '';
+            document.getElementById('taskTo').value = task.to || '';
+            document.getElementById('taskStartDate').value = task.startDate || '';
+            document.getElementById('taskDeliveryDate').value = task.deliveryDate || '';
+            document.getElementById('taskPriority').value = task.priority || 'auto';
+            document.getElementById('taskProgress').value = task.progressDetails || '';
+            document.getElementById('taskProgressDate').value = task.progressDate || '';
+            document.getElementById('taskPendingWith').value = task.pendingWith || '';
+            document.getElementById('taskNextStep').value = task.nextStep || '';
+
+            document.getElementById('taskModal').classList.add('show');
+        }
+
+        // Meeting Management
+        async function saveMeeting() {
+            const actionItems = [];
+            const actionItemsElements = document.querySelectorAll('.action-item input');
+            actionItemsElements.forEach(input => {
+                if (input.value.trim() !== '') {
+                    actionItems.push(input.value.trim());
+                }
+            });
+
+            const formData = {
+                title: document.getElementById('meetingTitle').value,
+                date: document.getElementById('meetingDate').value,
+                department: document.getElementById('meetingDepartment').value,
+                location: document.getElementById('meetingLocation').value,
+                attendees: document.getElementById('meetingAttendees').value.split('\n').filter(a => a.trim() !== ''),
+                agenda: document.getElementById('meetingAgenda').value,
+                discussion: document.getElementById('meetingDiscussion').value,
+                actionItems: actionItems,
+                decisions: document.getElementById('meetingDecisions').value
+            };
+
+            if (!formData.title || !formData.date || !formData.department) {
+                alert('Please fill in all required fields (Title, Date, Department)');
+                return;
+            }
+
+            try {
+                // Show loading state
+                document.getElementById('meetingSaveSpinner').style.display = 'inline-block';
+                document.getElementById('meetingSaveText').textContent = 'Saving...';
+
+                if (currentMeetingId) {
+                    // Update existing meeting
+                    await window.db.collection('meetings').doc(currentMeetingId).update({
+                        ...formData,
+                        updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+                        updatedBy: currentUser.uid
+                    });
+                } else {
+                    // Create new meeting
+                    await window.db.collection('meetings').add({
+                        ...formData,
+                        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                        createdBy: currentUser.uid,
+                        updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+                        updatedBy: currentUser.uid
+                    });
+                }
+
+                hideMeetingModal();
+                showSyncStatus('Meeting saved successfully!', 'sync-success');
+            } catch (error) {
+                console.error('Error saving meeting:', error);
+                showSyncStatus('Error saving meeting', 'sync-error');
+            } finally {
+                // Reset loading state
+                document.getElementById('meetingSaveSpinner').style.display = 'none';
+                document.getElementById('meetingSaveText').textContent = 'Save Meeting';
+            }
+        }
+
+        async function deleteMeeting(id) {
+            if (confirm('Are you sure you want to delete this meeting?')) {
+                try {
+                    await window.db.collection('meetings').doc(id).delete();
+                    showSyncStatus('Meeting deleted successfully!', 'sync-success');
+                } catch (error) {
+                    console.error('Error deleting meeting:', error);
+                    showSyncStatus('Error deleting meeting', 'sync-error');
+                }
+            }
+        }
+
+        function editMeeting(id) {
+            const meeting = meetings.find(m => m.id === id);
+            if (!meeting) return;
+
+            currentMeetingId = id;
+            document.getElementById('meetingModalTitle').textContent = 'Edit Meeting';
+
+            // Populate form
+            document.getElementById('meetingTitle').value = meeting.title || '';
+            document.getElementById('meetingDate').value = meeting.date || '';
+            document.getElementById('meetingDepartment').value = meeting.department || '';
+            document.getElementById('meetingLocation').value = meeting.location || '';
+            document.getElementById('meetingAttendees').value = (meeting.attendees || []).join('\n');
+            document.getElementById('meetingAgenda').value = meeting.agenda || '';
+            document.getElementById('meetingDiscussion').value = meeting.discussion || '';
+            document.getElementById('meetingDecisions').value = meeting.decisions || '';
+
+            // Clear and populate action items
+            const actionItemsList = document.getElementById('actionItemsList');
+            actionItemsList.innerHTML = '';
+
+            (meeting.actionItems || []).forEach(item => {
+                const actionId = `action-${actionItemsCounter++}`;
+                actionItemsList.innerHTML += `
+                    <div class="action-item">
+                        <input type="text" id="${actionId}" value="${item}" placeholder="Action item">
+                        <button class="action-item-remove" onclick="removeActionItem('${actionId}')">×</button>
+                    </div>
+                `;
+            });
+
+            document.getElementById('meetingModal').classList.add('show');
+        }
+
+        // Utility Functions
+        function getTaskPriority(task) {
+            if (task.priority && task.priority !== "auto") {
+                return task.priority;
+            }
+
+            if (!task.deliveryDate) return 'low';
+            const today = new Date();
+            const delivery = new Date(task.deliveryDate);
+            const daysRemaining = Math.ceil((delivery - today) / (1000 * 60 * 60 * 24));
+
+            if (daysRemaining < 0) return 'overdue';
+            if (daysRemaining <= 3) return 'urgent';
+            if (daysRemaining <= 7) return 'high';
+            return 'medium';
+        }
+
+        function getDaysRemaining(deliveryDate) {
+            if (!deliveryDate) return null;
+            const today = new Date();
+            const delivery = new Date(deliveryDate);
+            return Math.ceil((delivery - today) / (1000 * 60 * 60 * 24));
+        }
+
+        function formatDate(dateStr) {
+            if (!dateStr) return 'N/A';
+            return new Date(dateStr).toLocaleDateString();
+        }
+
+        function getAuthErrorMessage(errorCode) {
+            switch (errorCode) {
+                case 'auth/user-not-found':
+                    return 'No account found with this email address';
+                case 'auth/wrong-password':
+                    return 'Incorrect password';
+                case 'auth/email-already-in-use':
+                    return 'An account with this email already exists';
+                case 'auth/weak-password':
+                    return 'Password is too weak';
+                case 'auth/invalid-email':
+                    return 'Invalid email address';
+                case 'auth/too-many-requests':
+                    return 'Too many failed attempts. Please try again later';
+                default:
+                    return 'An error occurred. Please try again';
+            }
+        }
+
+        function showSyncStatus(message, type, duration = 3000) {
+            const syncStatus = document.getElementById('syncStatus');
+            syncStatus.style.display = 'block';
+            syncStatus.className = `sync-status ${type}`;
+            syncStatus.textContent = message;
+
+            setTimeout(() => {
+                syncStatus.style.display = 'none';
+            }, duration);
+        }
+
+        function showError(elementId, message) {
+            const element = document.getElementById(elementId);
+            element.textContent = message;
+            element.style.display = 'block';
+        }
+
+        function hideError(elementId) {
+            const element = document.getElementById(elementId);
+            element.style.display = 'none';
+        }
+
+        function showSuccess(elementId, message) {
+            const element = document.getElementById(elementId);
+            element.textContent = message;
+            element.style.display = 'block';
+        }
+
+        function hideSuccess(elementId) {
+            const element = document.getElementById(elementId);
+            element.style.display = 'none';
+        }
+
+        // Rendering Functions
+        function renderTasks(tasksToRender = tasks) {
+            const tbody = document.getElementById('tasksTableBody');
+            const emptyState = document.getElementById('tasksEmptyState');
+
+            if (tasksToRender.length === 0) {
+                tbody.innerHTML = '';
+                emptyState.style.display = 'block';
+                return;
+            }
+
+            emptyState.style.display = 'none';
+
+            tbody.innerHTML = tasksToRender.map(task => {
+                const priority = getTaskPriority(task);
+                const daysRemaining = getDaysRemaining(task.deliveryDate);
+
+                let timelineHtml = `<div class="text-xs text-gray">Start: ${formatDate(task.startDate)}</div>`;
+                if (task.deliveryDate) {
+                    timelineHtml += `<div class="text-xs">Due: ${formatDate(task.deliveryDate)}</div>`;
+                }
+                if (daysRemaining !== null) {
+                    const timeClass = daysRemaining < 0 ? 'text-red' : daysRemaining <= 3 ? 'text-orange' : 'text-green';
+                    const timeText = daysRemaining < 0 ? `${Math.abs(daysRemaining)} days overdue` : `${daysRemaining} days left`;
+                    timelineHtml += `<div class="text-xs font-medium ${timeClass}">${timeText}</div>`;
+                }
+
+                let responsibilityHtml = '';
+                if (task.from) responsibilityHtml += `<div class="text-xs"><span class="text-gray">From:</span> ${task.from}</div>`;
+                if (task.to) responsibilityHtml += `<div class="text-xs"><span class="text-gray">To:</span> ${task.to}</div>`;
+
+                let detailsHtml = `<div class="text-gray-900">${task.status}</div>`;
+                if (task.remarks) detailsHtml += `<div class="text-xs text-gray mt-1"><strong>Remarks:</strong> ${task.remarks}</div>`;
+                if (task.nextStep) detailsHtml += `<div class="text-xs text-green mt-1"><strong>Next Step:</strong> ${task.nextStep}</div>`;
+
+                let progressHtml = '';
+                if (task.progressDetails) {
+                    progressHtml += `<div class="text-xs text-blue"><strong>Details:</strong> ${task.progressDetails}</div>`;
+                }
+                if (task.progressDate) {
+                    progressHtml += `<div class="text-xs text-gray mt-1"><strong>Updated:</strong> ${formatDate(task.progressDate)}</div>`;
+                }
+                if (!progressHtml) {
+                    progressHtml = '<div class="text-xs text-gray">No progress updates</div>';
+                }
+
+                const priorityDisplay = task.priority === 'auto' ? 
+                    `${priority.charAt(0).toUpperCase() + priority.slice(1)} (Auto)` : 
+                    priority.charAt(0).toUpperCase() + priority.slice(1);
+
+                let pendingWithHtml = '';
+                if (task.pendingWith) {
+                    pendingWithHtml = `<div class="text-xs"><span class="badge badge-dept">${task.pendingWith}</span></div>`;
+                } else {
+                    pendingWithHtml = '<div class="text-xs text-gray">Not specified</div>';
+                }
+
+                return `
+                    <tr>
+                        <td>
+                            <span class="badge badge-dept">${task.department}</span>
+                        </td>
+                        <td>${detailsHtml}</td>
+                        <td>${timelineHtml}</td>
+                        <td>${responsibilityHtml}</td>
+                        <td>${progressHtml}</td>
+                        <td>
+                            <span class="badge badge-${priority}">
+                                ${priorityDisplay}
+                            </span>
+                        </td>
+                        <td>${pendingWithHtml}</td>
+                        <td>
+                            <div class="actions">
+                                <button class="btn btn-sm" onclick="editTask('${task.id}')">✏️</button>
+                                <button class="btn btn-danger btn-sm" onclick="deleteTask('${task.id}')">🗑️</button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function renderMeetings(meetingsToRender = meetings) {
+            const meetingsList = document.getElementById('meetingsList');
+            const emptyState = document.getElementById('meetingsEmptyState');
+
+            if (meetingsToRender.length === 0) {
+                meetingsList.innerHTML = '';
+                emptyState.style.display = 'block';
+                return;
+            }
+
+            emptyState.style.display = 'none';
+
+            meetingsList.innerHTML = meetingsToRender.map(meeting => {
+                return `
+                    <div class="meeting-card">
+                        <div class="meeting-header">
+                            <div class="meeting-title">${meeting.title}</div>
+                            <div class="meeting-date">${formatDate(meeting.date)}</div>
+                        </div>
+                        <div class="meeting-section">
+                            <div><strong>Department:</strong> <span class="badge badge-dept">${meeting.department}</span></div>
+                            <div><strong>Location:</strong> ${meeting.location || 'N/A'}</div>
+                        </div>
+                        <div class="meeting-section">
+                            <h4>Attendees</h4>
+                            <p>${(meeting.attendees || []).join(', ') || 'None'}</p>
+                        </div>
+                        <div class="meeting-section">
+                            <h4>Agenda</h4>
+                            <p>${meeting.agenda || 'No agenda items'}</p>
+                        </div>
+                        <div class="meeting-section">
+                            <h4>Discussion</h4>
+                            <p>${meeting.discussion || 'No discussion notes'}</p>
+                        </div>
+                        <div class="meeting-section">
+                            <h4>Action Items</h4>
+                            <ul>
+                                ${(meeting.actionItems || []).map(item => `<li>${item}</li>`).join('') || '<li>No action items</li>'}
+                            </ul>
+                        </div>
+                        <div class="meeting-section">
+                            <h4>Decisions</h4>
+                            <p>${meeting.decisions || 'No decisions recorded'}</p>
+                        </div>
+                        <div class="meeting-actions">
+                            <button class="btn btn-sm" onclick="editMeeting('${meeting.id}')">Edit</button>
+                            <button class="btn btn-danger btn-sm" onclick="deleteMeeting('${meeting.id}')">Delete</button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function updateStats() {
+            const stats = {
+                total: tasks.length,
+                overdue: tasks.filter(t => getTaskPriority(t) === 'overdue').length,
+                urgent: tasks.filter(t => getTaskPriority(t) === 'urgent').length,
+                completed: tasks.filter(t => t.status.toLowerCase().includes('completed')).length
+            };
+
+            document.getElementById('totalTasks').textContent = stats.total;
+            document.getElementById('overdueTasks').textContent = stats.overdue;
+            document.getElementById('urgentTasks').textContent = stats.urgent;
+            document.getElementById('completedTasks').textContent = stats.completed;
+        }
+
+        // Filter and Search Functions
+        function filterTasks() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const departmentFilter = document.getElementById('departmentFilter').value;
+            const priorityFilter = document.getElementById('priorityFilter').value;
+            const sortBy = document.getElementById('sortBy').value;
+
+            let filtered = tasks.filter(task => {
+                const matchesSearch = task.status.toLowerCase().includes(searchTerm) ||
+                                   task.department.toLowerCase().includes(searchTerm) ||
+                                   (task.remarks && task.remarks.toLowerCase().includes(searchTerm)) ||
+                                   (task.pendingWith && task.pendingWith.toLowerCase().includes(searchTerm));
+                const matchesDepartment = departmentFilter === 'all' || task.department === departmentFilter;
+                const matchesPriority = priorityFilter === 'all' || getTaskPriority(task) === priorityFilter;
+
+                return matchesSearch && matchesDepartment && matchesPriority;
+            });
+
+            // Sort
+            filtered.sort((a, b) => {
+                if (sortBy === 'deliveryDate') {
+                    if (!a.deliveryDate && !b.deliveryDate) return 0;
+                    if (!a.deliveryDate) return 1;
+                    if (!b.deliveryDate) return -1;
+                    return new Date(a.deliveryDate) - new Date(b.deliveryDate);
+                }
+                if (sortBy === 'department') {
+                    return a.department.localeCompare(b.department);
+                }
+                return 0;
+            });
+
+            renderTasks(filtered);
+        }
+
+        function filterMeetings() {
+            const searchTerm = document.getElementById('meetingSearch').value.toLowerCase();
+            const departmentFilter = document.getElementById('meetingDepartmentFilter').value;
+            const dateFilter = document.getElementById('meetingDateFilter').value;
+
+            let filtered = meetings.filter(meeting => {
+                const matchesSearch = meeting.title.toLowerCase().includes(searchTerm) ||
+                                     meeting.department.toLowerCase().includes(searchTerm) ||
+                                     (meeting.agenda && meeting.agenda.toLowerCase().includes(searchTerm));
+                const matchesDepartment = departmentFilter === 'all' || meeting.department === departmentFilter;
+                const matchesDate = !dateFilter || meeting.date === dateFilter;
+
+                return matchesSearch && matchesDepartment && matchesDate;
+            });
+
+            renderMeetings(filtered);
+        }
+
+        // Modal Functions
+        function showAddTaskModal() {
+            currentEditId = null;
+            document.getElementById('modalTitle').textContent = 'Add New Task';
+            clearTaskForm();
+            document.getElementById('taskStartDate').value = new Date().toISOString().split('T')[0];
+            document.getElementById('taskPriority').value = 'auto';
+            document.getElementById('taskModal').classList.add('show');
+        }
+
+        function hideTaskModal() {
+            document.getElementById('taskModal').classList.remove('show');
+            clearTaskForm();
+        }
+
+        function clearTaskForm() {
+            const fields = ['taskDepartment', 'taskStatus', 'taskRemarks', 'taskFrom', 'taskTo', 
+                          'taskStartDate', 'taskDeliveryDate', 'taskProgress', 'taskProgressDate', 
+                          'taskPendingWith', 'taskNextStep'];
+            fields.forEach(field => {
+                document.getElementById(field).value = '';
+            });
+            document.getElementById('taskPriority').value = 'auto';
+        }
+
+        function showAddMeetingModal() {
+            currentMeetingId = null;
+            document.getElementById('meetingModalTitle').textContent = 'Add New Meeting';
+            clearMeetingForm();
+            document.getElementById('meetingDate').value = new Date().toISOString().split('T')[0];
+            document.getElementById('meetingModal').classList.add('show');
+        }
+
+        function hideMeetingModal() {
+            document.getElementById('meetingModal').classList.remove('show');
+            clearMeetingForm();
+        }
+
+        function clearMeetingForm() {
+            const fields = ['meetingTitle', 'meetingDate', 'meetingDepartment', 'meetingLocation', 
+                          'meetingAttendees', 'meetingAgenda', 'meetingDiscussion', 'meetingDecisions'];
+            fields.forEach(field => {
+                document.getElementById(field).value = '';
+            });
+            document.getElementById('actionItemsList').innerHTML = '';
+        }
+
+        function addActionItem() {
+            const actionId = `action-${actionItemsCounter++}`;
+            const actionItemsList = document.getElementById('actionItemsList');
+            actionItemsList.innerHTML += `
+                <div class="action-item">
+                    <input type="text" id="${actionId}" placeholder="Action item">
+                    <button class="action-item-remove" onclick="removeActionItem('${actionId}')">×</button>
+                </div>
+            `;
+        }
+
+        function removeActionItem(id) {
+            const element = document.getElementById(id);
+            if (element) {
+                element.parentElement.remove();
+            }
+        }
+
+        // Settings and other modal functions
         function toggleSettingsMenu() {
             const menu = document.getElementById('settingsMenu');
             menu.classList.toggle('show');
@@ -1588,7 +2241,6 @@
             document.getElementById('settingsMenu').classList.remove('show');
         }
 
-        // Change password functions
         function showChangePasswordModal() {
             hideSettingsMenu();
             document.getElementById('changePasswordModal').classList.add('show');
@@ -1596,7 +2248,6 @@
             document.getElementById('currentPassword').value = '';
             document.getElementById('newPassword').value = '';
             document.getElementById('confirmPassword').value = '';
-            document.getElementById('passwordStrength').innerHTML = '';
             hideError('passwordError');
             hideSuccess('passwordSuccess');
         }
@@ -1605,58 +2256,14 @@
             document.getElementById('changePasswordModal').classList.remove('show');
         }
 
-        function changePassword() {
-            const currentPassword = document.getElementById('currentPassword').value;
-            const newPassword = document.getElementById('newPassword').value;
-            const confirmPassword = document.getElementById('confirmPassword').value;
-            
-            // Validate current password
-            if (userDatabase[currentUser.email].password !== currentPassword) {
-                showError('passwordError', 'Current password is incorrect');
-                return;
-            }
-            
-            // Validate new password
-            const validation = validatePassword(newPassword);
-            if (!validation.valid) {
-                showError('passwordError', validation.message);
-                return;
-            }
-            
-            // Check password confirmation
-            if (newPassword !== confirmPassword) {
-                showError('passwordError', 'New passwords do not match');
-                return;
-            }
-            
-            // Check if new password is different
-            if (newPassword === currentPassword) {
-                showError('passwordError', 'New password must be different from current password');
-                return;
-            }
-            
-            // Update password
-            userDatabase[currentUser.email].password = newPassword;
-            
-            showSuccess('passwordSuccess', 'Password changed successfully!');
-            
-            // Clear form after 2 seconds and close modal
-            setTimeout(() => {
-                hideChangePasswordModal();
-            }, 2000);
-        }
-
-        // Report functions
         function showReportModal() {
-            if (!checkPermission('generateReports')) return;
-            
             hideSettingsMenu();
             document.getElementById('reportModal').classList.add('show');
             // Set default dates
             const today = new Date();
             const lastWeek = new Date();
             lastWeek.setDate(today.getDate() - 7);
-            
+
             document.getElementById('startDate').value = lastWeek.toISOString().split('T')[0];
             document.getElementById('endDate').value = today.toISOString().split('T')[0];
         }
@@ -1665,89 +2272,90 @@
             document.getElementById('reportModal').classList.remove('show');
         }
 
+        // Report generation functions
         function generateReport() {
             const reportType = document.getElementById('reportType').value;
             const startDate = document.getElementById('startDate').value;
             const endDate = document.getElementById('endDate').value;
-            
+
             if (!startDate || !endDate) {
                 alert('Please select both start and end dates');
                 return;
             }
-            
+
             // Get selected departments
             const selectedDepartments = Array.from(document.querySelectorAll('input[name="department"]:checked'))
                 .map(el => el.value);
-            
+
             if (selectedDepartments.length === 0) {
                 alert('Please select at least one department');
                 return;
             }
-            
+
             // Filter tasks based on date range and departments
             const filteredTasks = tasks.filter(task => {
                 const taskDate = task.startDate || task.progressDate || task.deliveryDate;
                 if (!taskDate) return false;
-                
+
                 const taskDateObj = new Date(taskDate);
                 const start = new Date(startDate);
                 const end = new Date(endDate);
                 end.setDate(end.getDate() + 1); // Include end date
-                
+
                 return taskDateObj >= start && 
                        taskDateObj <= end &&
                        selectedDepartments.includes(task.department);
             });
-            
+
             if (filteredTasks.length === 0) {
                 alert('No tasks found for the selected criteria');
                 return;
             }
-            
+
             if (reportType === 'excel') {
-                generateExcelReport(filteredTasks);
+                generateExcelReport(filteredTasks, startDate, endDate);
             } else {
-                generateWordReport(filteredTasks);
+                generateWordReport(filteredTasks, startDate, endDate);
             }
-            
+
             hideReportModal();
         }
 
-        function generateExcelReport(tasks) {
+        function generateExcelReport(tasks, startDate, endDate) {
             // Prepare data for Excel
             const excelData = tasks.map(task => {
                 return {
                     "ID": task.id,
                     "Department": task.department,
                     "Status": task.status,
-                    "Remarks": task.remarks,
-                    "From": task.from,
-                    "To": task.to,
-                    "Start Date": task.startDate,
-                    "Delivery Date": task.deliveryDate,
+                    "Remarks": task.remarks || '',
+                    "From": task.from || '',
+                    "To": task.to || '',
+                    "Start Date": task.startDate || '',
+                    "Delivery Date": task.deliveryDate || '',
                     "Priority": getTaskPriority(task),
-                    "Progress Details": task.progressDetails,
-                    "Progress Date": task.progressDate,
-                    "Pending With": task.pendingWith,
-                    "Next Step": task.nextStep
+                    "Progress Details": task.progressDetails || '',
+                    "Progress Date": task.progressDate || '',
+                    "Pending With": task.pendingWith || '',
+                    "Next Step": task.nextStep || ''
                 };
             });
-            
+
             // Create workbook
             const wb = XLSX.utils.book_new();
             const ws = XLSX.utils.json_to_sheet(excelData);
             XLSX.utils.book_append_sheet(wb, ws, "Tasks");
-            
+
             // Generate file name with date range
             const formattedStart = startDate.split('-').reverse().join('-');
             const formattedEnd = endDate.split('-').reverse().join('-');
             const fileName = `Sikkim_INSPIRES_Report_${formattedStart}_to_${formattedEnd}.xlsx`;
-            
+
             // Export to Excel
             XLSX.writeFile(wb, fileName);
         }
 
-        function generateWordReport(tasks) {
+        function generateWordReport(tasks, startDate, endDate) {
             // Create HTML content for the report
             let htmlContent = `
                 <!DOCTYPE html>
@@ -1772,7 +2380,7 @@
                     <h1>Sikkim INSPIRES Programme Report</h1>
                     <div class="report-header">
                         <p><strong>Generated:</strong> ${new Date().toLocaleString()}</p>
-                        <p><strong>Date Range:</strong> ${document.getElementById('startDate').value} to ${document.getElementById('endDate').value}</p>
+                        <p><strong>Date Range:</strong> ${startDate} to ${endDate}</p>
                     </div>
                     <table>
                         <thead>
@@ -1788,7 +2396,7 @@
                         </thead>
                         <tbody>
             `;
-            
+
             // Add task rows
             tasks.forEach(task => {
                 htmlContent += `
@@ -1803,579 +2411,27 @@
                     </tr>
                 `;
             });
-            
+
             htmlContent += `
                         </tbody>
                     </table>
                 </body>
                 </html>
             `;
-            
+
             // Create a Blob and download
             const blob = new Blob([htmlContent], { type: 'application/msword' });
             const link = document.createElement('a');
-            
+
             // Generate file name with date range
-            const formattedStart = document.getElementById('startDate').value.split('-').reverse().join('-');
-            const formattedEnd = document.getElementById('endDate').value.split('-').reverse().join('-');
+            const formattedStart = startDate.split('-').reverse().join('-');
+            const formattedEnd = endDate.split('-').reverse().join('-');
             const fileName = `Sikkim_INSPIRES_Report_${formattedStart}_to_${formattedEnd}.doc`;
-            
+
             link.href = URL.createObjectURL(blob);
             link.download = fileName;
             link.click();
             URL.revokeObjectURL(link.href);
-        }
-
-        // Utility functions for messages
-        function showError(elementId, message) {
-            const element = document.getElementById(elementId);
-            element.textContent = message;
-            element.style.display = 'block';
-        }
-
-        function hideError(elementId) {
-            const element = document.getElementById(elementId);
-            element.style.display = 'none';
-        }
-
-        function showSuccess(elementId, message) {
-            const element = document.getElementById(elementId);
-            element.textContent = message;
-            element.style.display = 'block';
-        }
-
-        function hideSuccess(elementId) {
-            const element = document.getElementById(elementId);
-            element.style.display = 'none';
-        }
-
-        // Permission Management Functions
-        function hasPermission(action) {
-            return currentUser.permissions && currentUser.permissions[action] === true;
-        }
-
-        function checkPermission(action) {
-            if (!hasPermission(action)) {
-                showPermissionWarning();
-                return false;
-            }
-            return true;
-        }
-
-        function showPermissionWarning() {
-            const warning = document.getElementById('permissionWarning');
-            warning.style.display = 'block';
-            setTimeout(() => {
-                warning.style.display = 'none';
-            }, 3000);
-        }
-
-        function updateUserInterface() {
-            // Update user info display
-            const roleBadge = document.getElementById('userRoleBadge');
-            const userName = document.getElementById('userName');
-            
-            roleBadge.textContent = roleConfig[currentUser.role].name;
-            roleBadge.className = `role-badge ${roleConfig[currentUser.role].badge}`;
-            userName.textContent = userDatabase[currentUser.email].name;
-            
-            // Update button visibility based on permissions
-            const addTaskBtn = document.getElementById('addTaskBtn');
-            
-            if (hasPermission('add')) {
-                addTaskBtn.classList.remove('hidden');
-            } else {
-                addTaskBtn.classList.add('hidden');
-            }
-            
-            // Update table rendering for action buttons
-            filterTasks();
-        }
-
-        // Utility functions
-        function getTaskPriority(task) {
-            // If priority is manually set (not "auto"), use that
-            if (task.priority && task.priority !== "auto") {
-                return task.priority;
-            }
-            
-            // Otherwise calculate based on delivery date
-            if (!task.deliveryDate) return 'low';
-            const today = new Date();
-            const delivery = new Date(task.deliveryDate);
-            const daysRemaining = Math.ceil((delivery - today) / (1000 * 60 * 60 * 24));
-            
-            if (daysRemaining < 0) return 'overdue';
-            if (daysRemaining <= 3) return 'urgent';
-            if (daysRemaining <= 7) return 'high';
-            return 'medium';
-        }
-
-        function getDaysRemaining(deliveryDate) {
-            if (!deliveryDate) return null;
-            const today = new Date();
-            const delivery = new Date(deliveryDate);
-            return Math.ceil((delivery - today) / (1000 * 60 * 60 * 24));
-        }
-
-        function formatDate(dateStr) {
-            if (!dateStr) return 'N/A';
-            return new Date(dateStr).toLocaleDateString();
-        }
-
-        function renderTasks(tasksToRender = tasks) {
-            const tbody = document.getElementById('tasksTableBody');
-            const emptyState = document.getElementById('tasksEmptyState');
-            
-            if (tasksToRender.length === 0) {
-                tbody.innerHTML = '';
-                emptyState.style.display = 'block';
-                return;
-            }
-            
-            emptyState.style.display = 'none';
-            
-            tbody.innerHTML = tasksToRender.map(task => {
-                const priority = getTaskPriority(task);
-                const daysRemaining = getDaysRemaining(task.deliveryDate);
-                
-                let timelineHtml = `<div class="text-xs text-gray">Start: ${formatDate(task.startDate)}</div>`;
-                if (task.deliveryDate) {
-                    timelineHtml += `<div class="text-xs">Due: ${formatDate(task.deliveryDate)}</div>`;
-                }
-                if (daysRemaining !== null) {
-                    const timeClass = daysRemaining < 0 ? 'text-red' : daysRemaining <= 3 ? 'text-orange' : 'text-green';
-                    const timeText = daysRemaining < 0 ? `${Math.abs(daysRemaining)} days overdue` : `${daysRemaining} days left`;
-                    timelineHtml += `<div class="text-xs font-medium ${timeClass}">${timeText}</div>`;
-                }
-                
-                let responsibilityHtml = '';
-                if (task.from) responsibilityHtml += `<div class="text-xs"><span class="text-gray">From:</span> ${task.from}</div>`;
-                if (task.to) responsibilityHtml += `<div class="text-xs"><span class="text-gray">To:</span> ${task.to}</div>`;
-                
-                let detailsHtml = `<div class="text-gray-900">${task.status}</div>`;
-                if (task.remarks) detailsHtml += `<div class="text-xs text-gray mt-1"><strong>Remarks:</strong> ${task.remarks}</div>`;
-                if (task.nextStep) detailsHtml += `<div class="text-xs text-green mt-1"><strong>Next Step:</strong> ${task.nextStep}</div>`;
-                
-                let progressHtml = '';
-                if (task.progressDetails) {
-                    progressHtml += `<div class="text-xs text-blue"><strong>Details:</strong> ${task.progressDetails}</div>`;
-                }
-                if (task.progressDate) {
-                    progressHtml += `<div class="text-xs text-gray mt-1"><strong>Updated:</strong> ${formatDate(task.progressDate)}</div>`;
-                }
-                if (!progressHtml) {
-                    progressHtml = '<div class="text-xs text-gray">No progress updates</div>';
-                }
-                
-                const priorityDisplay = task.priority === 'auto' ? 
-                    `${priority.charAt(0).toUpperCase() + priority.slice(1)} (Auto)` : 
-                    priority.charAt(0).toUpperCase() + priority.slice(1);
-                
-                // Generate action buttons based on permissions
-                let actionButtons = '';
-                if (hasPermission('edit')) {
-                    actionButtons += `<button class="btn btn-sm" onclick="editTask(${task.id})">✏️</button>`;
-                }
-                if (hasPermission('delete')) {
-                    actionButtons += `<button class="btn btn-danger btn-sm" onclick="deleteTask(${task.id})">🗑️</button>`;
-                }
-                if (!actionButtons) {
-                    actionButtons = '<span class="text-xs text-gray">No actions available</span>';
-                }
-                
-                let pendingWithHtml = '';
-                if (task.pendingWith) {
-                    pendingWithHtml = `<div class="text-xs"><span class="badge badge-dept">${task.pendingWith}</span></div>`;
-                } else {
-                    pendingWithHtml = '<div class="text-xs text-gray">Not specified</div>';
-                }
-                
-                return `
-                    <tr>
-                        <td>
-                            <span class="badge badge-dept">${task.department}</span>
-                        </td>
-                        <td>${detailsHtml}</td>
-                        <td>${timelineHtml}</td>
-                        <td>${responsibilityHtml}</td>
-                        <td>${progressHtml}</td>
-                        <td>
-                            <span class="badge badge-${priority}">
-                                ${priorityDisplay}
-                            </span>
-                        </td>
-                        <td>${pendingWithHtml}</td>
-                        <td>
-                            <div class="actions">
-                                ${actionButtons}
-                            </div>
-                        </td>
-                    </tr>
-                `;
-            }).join('');
-        }
-
-        function updateStats() {
-            const stats = {
-                total: tasks.length,
-                overdue: tasks.filter(t => getTaskPriority(t) === 'overdue').length,
-                urgent: tasks.filter(t => getTaskPriority(t) === 'urgent').length,
-                completed: tasks.filter(t => t.status.toLowerCase().includes('completed')).length
-            };
-            
-            document.getElementById('totalTasks').textContent = stats.total;
-            document.getElementById('overdueTasks').textContent = stats.overdue;
-            document.getElementById('urgentTasks').textContent = stats.urgent;
-            document.getElementById('completedTasks').textContent = stats.completed;
-        }
-
-        function filterTasks() {
-            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
-            const departmentFilter = document.getElementById('departmentFilter').value;
-            const priorityFilter = document.getElementById('priorityFilter').value;
-            const sortBy = document.getElementById('sortBy').value;
-            
-            let filtered = tasks.filter(task => {
-                const matchesSearch = task.status.toLowerCase().includes(searchTerm) ||
-                                   task.department.toLowerCase().includes(searchTerm) ||
-                                   task.remarks.toLowerCase().includes(searchTerm) ||
-                                   (task.pendingWith && task.pendingWith.toLowerCase().includes(searchTerm));
-                const matchesDepartment = departmentFilter === 'all' || task.department === departmentFilter;
-                const matchesPriority = priorityFilter === 'all' || getTaskPriority(task) === priorityFilter;
-                
-                return matchesSearch && matchesDepartment && matchesPriority;
-            });
-
-            // Sort
-            filtered.sort((a, b) => {
-                if (sortBy === 'deliveryDate') {
-                    if (!a.deliveryDate && !b.deliveryDate) return 0;
-                    if (!a.deliveryDate) return 1;
-                    if (!b.deliveryDate) return -1;
-                    return new Date(a.deliveryDate) - new Date(b.deliveryDate);
-                }
-                if (sortBy === 'department') {
-                    return a.department.localeCompare(b.department);
-                }
-                return a.id - b.id;
-            });
-
-            renderTasks(filtered);
-        }
-
-        function showAddTaskModal() {
-            if (!checkPermission('add')) return;
-            
-            currentEditId = null;
-            document.getElementById('modalTitle').textContent = 'Add New Task';
-            clearTaskForm();
-            document.getElementById('taskStartDate').value = new Date().toISOString().split('T')[0];
-            document.getElementById('taskPriority').value = 'auto';
-            document.getElementById('taskModal').classList.add('show');
-        }
-
-        function editTask(id) {
-            if (!checkPermission('edit')) return;
-            
-            const task = tasks.find(t => t.id === id);
-            if (!task) return;
-            
-            currentEditId = id;
-            document.getElementById('modalTitle').textContent = 'Edit Task';
-            
-            document.getElementById('taskDepartment').value = task.department;
-            document.getElementById('taskStatus').value = task.status;
-            document.getElementById('taskRemarks').value = task.remarks;
-            document.getElementById('taskFrom').value = task.from;
-            document.getElementById('taskTo').value = task.to;
-            document.getElementById('taskStartDate').value = task.startDate;
-            document.getElementById('taskDeliveryDate').value = task.deliveryDate;
-            document.getElementById('taskPriority').value = task.priority || 'auto';
-            document.getElementById('taskProgress').value = task.progressDetails;
-            document.getElementById('taskProgressDate').value = task.progressDate;
-            document.getElementById('taskPendingWith').value = task.pendingWith || '';
-            document.getElementById('taskNextStep').value = task.nextStep;
-            
-            document.getElementById('taskModal').classList.add('show');
-        }
-
-        function deleteTask(id) {
-            if (!checkPermission('delete')) return;
-            
-            if (confirm('Are you sure you want to delete this task?')) {
-                tasks = tasks.filter(t => t.id !== id);
-                renderTasks();
-                updateStats();
-                saveData();
-            }
-        }
-
-        function saveTask() {
-            const isEditing = currentEditId !== null;
-            const requiredPermission = isEditing ? 'edit' : 'add';
-            
-            if (!checkPermission(requiredPermission)) return;
-            
-            const formData = {
-                department: document.getElementById('taskDepartment').value,
-                status: document.getElementById('taskStatus').value,
-                remarks: document.getElementById('taskRemarks').value,
-                from: document.getElementById('taskFrom').value,
-                to: document.getElementById('taskTo').value,
-                startDate: document.getElementById('taskStartDate').value,
-                deliveryDate: document.getElementById('taskDeliveryDate').value,
-                priority: document.getElementById('taskPriority').value,
-                progressDetails: document.getElementById('taskProgress').value,
-                progressDate: document.getElementById('taskProgressDate').value,
-                pendingWith: document.getElementById('taskPendingWith').value,
-                nextStep: document.getElementById('taskNextStep').value
-            };
-            
-            if (!formData.department || !formData.status || !formData.startDate) {
-                alert('Please fill in all required fields (Department, Status, Start Date)');
-                return;
-            }
-            
-            if (currentEditId) {
-                // Edit existing task
-                const taskIndex = tasks.findIndex(t => t.id === currentEditId);
-                tasks[taskIndex] = { ...tasks[taskIndex], ...formData };
-            } else {
-                // Add new task
-                const newTask = {
-                    ...formData,
-                    id: Math.max(...tasks.map(t => t.id), 0) + 1
-                };
-                tasks.push(newTask);
-            }
-            
-            hideTaskModal();
-            filterTasks();
-            updateStats();
-            saveData();
-        }
-
-        function hideTaskModal() {
-            document.getElementById('taskModal').classList.remove('show');
-            clearTaskForm();
-        }
-
-        function clearTaskForm() {
-            document.getElementById('taskDepartment').value = '';
-            document.getElementById('taskStatus').value = '';
-            document.getElementById('taskRemarks').value = '';
-            document.getElementById('taskFrom').value = '';
-            document.getElementById('taskTo').value = '';
-            document.getElementById('taskStartDate').value = '';
-            document.getElementById('taskDeliveryDate').value = '';
-            document.getElementById('taskPriority').value = 'auto';
-            document.getElementById('taskProgress').value = '';
-            document.getElementById('taskProgressDate').value = '';
-            document.getElementById('taskPendingWith').value = '';
-            document.getElementById('taskNextStep').value = '';
-        }
-
-        // Meeting functions
-        function showAddMeetingModal() {
-            currentMeetingId = null;
-            document.getElementById('meetingModalTitle').textContent = 'Add New Meeting';
-            clearMeetingForm();
-            document.getElementById('meetingDate').value = new Date().toISOString().split('T')[0];
-            document.getElementById('meetingModal').classList.add('show');
-        }
-
-        function editMeeting(id) {
-            const meeting = meetings.find(m => m.id === id);
-            if (!meeting) return;
-            
-            currentMeetingId = id;
-            document.getElementById('meetingModalTitle').textContent = 'Edit Meeting';
-            
-            document.getElementById('meetingTitle').value = meeting.title;
-            document.getElementById('meetingDate').value = meeting.date;
-            document.getElementById('meetingDepartment').value = meeting.department;
-            document.getElementById('meetingLocation').value = meeting.location || '';
-            document.getElementById('meetingAttendees').value = meeting.attendees.join('\n');
-            document.getElementById('meetingAgenda').value = meeting.agenda;
-            document.getElementById('meetingDiscussion').value = meeting.discussion;
-            document.getElementById('meetingDecisions').value = meeting.decisions;
-            
-            // Clear action items list
-            const actionItemsList = document.getElementById('actionItemsList');
-            actionItemsList.innerHTML = '';
-            
-            // Add action items
-            meeting.actionItems.forEach(item => {
-                const actionId = `action-${actionItemsCounter++}`;
-                actionItemsList.innerHTML += `
-                    <div class="action-item">
-                        <input type="text" id="${actionId}" value="${item}" placeholder="Action item">
-                        <button class="action-item-remove" onclick="removeActionItem('${actionId}')">×</button>
-                    </div>
-                `;
-            });
-            
-            document.getElementById('meetingModal').classList.add('show');
-        }
-
-        function deleteMeeting(id) {
-            if (confirm('Are you sure you want to delete this meeting?')) {
-                meetings = meetings.filter(m => m.id !== id);
-                renderMeetings();
-                saveData();
-            }
-        }
-
-        function addActionItem() {
-            const actionId = `action-${actionItemsCounter++}`;
-            const actionItemsList = document.getElementById('actionItemsList');
-            actionItemsList.innerHTML += `
-                <div class="action-item">
-                    <input type="text" id="${actionId}" placeholder="Action item">
-                    <button class="action-item-remove" onclick="removeActionItem('${actionId}')">×</button>
-                </div>
-            `;
-        }
-
-        function removeActionItem(id) {
-            const element = document.getElementById(id);
-            if (element) {
-                element.parentElement.remove();
-            }
-        }
-
-        function saveMeeting() {
-            const actionItems = [];
-            const actionItemsElements = document.querySelectorAll('.action-item input');
-            actionItemsElements.forEach(input => {
-                if (input.value.trim() !== '') {
-                    actionItems.push(input.value.trim());
-                }
-            });
-            
-            const formData = {
-                title: document.getElementById('meetingTitle').value,
-                date: document.getElementById('meetingDate').value,
-                department: document.getElementById('meetingDepartment').value,
-                location: document.getElementById('meetingLocation').value,
-                attendees: document.getElementById('meetingAttendees').value.split('\n').filter(a => a.trim() !== ''),
-                agenda: document.getElementById('meetingAgenda').value,
-                discussion: document.getElementById('meetingDiscussion').value,
-                actionItems: actionItems,
-                decisions: document.getElementById('meetingDecisions').value
-            };
-            
-            if (!formData.title || !formData.date || !formData.department) {
-                alert('Please fill in all required fields (Title, Date, Department)');
-                return;
-            }
-            
-            if (currentMeetingId) {
-                // Edit existing meeting
-                const meetingIndex = meetings.findIndex(m => m.id === currentMeetingId);
-                meetings[meetingIndex] = { ...meetings[meetingIndex], ...formData };
-            } else {
-                // Add new meeting
-                const newMeeting = {
-                    ...formData,
-                    id: Math.max(...meetings.map(m => m.id), 0) + 1
-                };
-                meetings.push(newMeeting);
-            }
-            
-            hideMeetingModal();
-            renderMeetings();
-            saveData();
-        }
-
-        function hideMeetingModal() {
-            document.getElementById('meetingModal').classList.remove('show');
-            clearMeetingForm();
-        }
-
-        function clearMeetingForm() {
-            document.getElementById('meetingTitle').value = '';
-            document.getElementById('meetingDate').value = '';
-            document.getElementById('meetingDepartment').value = '';
-            document.getElementById('meetingLocation').value = '';
-            document.getElementById('meetingAttendees').value = '';
-            document.getElementById('meetingAgenda').value = '';
-            document.getElementById('meetingDiscussion').value = '';
-            document.getElementById('meetingDecisions').value = '';
-            document.getElementById('actionItemsList').innerHTML = '';
-        }
-
-        function renderMeetings(meetingsToRender = meetings) {
-            const meetingsList = document.getElementById('meetingsList');
-            const emptyState = document.getElementById('meetingsEmptyState');
-            
-            if (meetingsToRender.length === 0) {
-                meetingsList.innerHTML = '';
-                emptyState.style.display = 'block';
-                return;
-            }
-            
-            emptyState.style.display = 'none';
-            
-            meetingsList.innerHTML = meetingsToRender.map(meeting => {
-                return `
-                    <div class="meeting-card">
-                        <div class="meeting-header">
-                            <div class="meeting-title">${meeting.title}</div>
-                            <div class="meeting-date">${formatDate(meeting.date)}</div>
-                        </div>
-                        <div class="meeting-section">
-                            <div><strong>Department:</strong> <span class="badge badge-dept">${meeting.department}</span></div>
-                            <div><strong>Location:</strong> ${meeting.location || 'N/A'}</div>
-                        </div>
-                        <div class="meeting-section">
-                            <h4>Attendees</h4>
-                            <p>${meeting.attendees.join(', ') || 'None'}</p>
-                        </div>
-                        <div class="meeting-section">
-                            <h4>Agenda</h4>
-                            <p>${meeting.agenda || 'No agenda items'}</p>
-                        </div>
-                        <div class="meeting-section">
-                            <h4>Discussion</h4>
-                            <p>${meeting.discussion || 'No discussion notes'}</p>
-                        </div>
-                        <div class="meeting-section">
-                            <h4>Action Items</h4>
-                            <ul>
-                                ${meeting.actionItems.map(item => `<li>${item}</li>`).join('') || '<li>No action items</li>'}
-                            </ul>
-                        </div>
-                        <div class="meeting-section">
-                            <h4>Decisions</h4>
-                            <p>${meeting.decisions || 'No decisions recorded'}</p>
-                        </div>
-                        <div class="meeting-actions">
-                            <button class="btn btn-sm" onclick="editMeeting(${meeting.id})">Edit</button>
-                            <button class="btn btn-danger btn-sm" onclick="deleteMeeting(${meeting.id})">Delete</button>
-                        </div>
-                    </div>
-                `;
-            }).join('');
-        }
-
-        function filterMeetings() {
-            const searchTerm = document.getElementById('meetingSearch').value.toLowerCase();
-            const departmentFilter = document.getElementById('meetingDepartmentFilter').value;
-            const dateFilter = document.getElementById('meetingDateFilter').value;
-            
-            let filtered = meetings.filter(meeting => {
-                const matchesSearch = meeting.title.toLowerCase().includes(searchTerm) ||
-                                     meeting.department.toLowerCase().includes(searchTerm) ||
-                                     meeting.agenda.toLowerCase().includes(searchTerm);
-                const matchesDepartment = departmentFilter === 'all' || meeting.department === departmentFilter;
-                const matchesDate = !dateFilter || meeting.date === dateFilter;
-                
-                return matchesSearch && matchesDepartment && matchesDate;
-            });
-
-            renderMeetings(filtered);
         }
 
         // Tab switching
@@ -2385,7 +2441,7 @@
                 tab.classList.remove('active');
             });
             document.querySelector(`.nav-tab[onclick="switchTab('${tabName}')"]`).classList.add('active');
-            
+
             // Update active content
             document.querySelectorAll('.tab-content').forEach(content => {
                 content.classList.remove('active');
@@ -2393,81 +2449,7 @@
             document.getElementById(`${tabName}Tab`).classList.add('active');
         }
 
-        // GitHub functions
-        function showGitHubModal() {
-            hideSettingsMenu();
-            document.getElementById('githubModal').classList.add('show');
-            
-            // Load saved settings
-            const savedToken = localStorage.getItem('githubToken');
-            if (savedToken) {
-                document.getElementById('githubToken').value = savedToken;
-            }
-            
-            const savedRepo = localStorage.getItem('githubRepo');
-            if (savedRepo) {
-                document.getElementById('githubRepo').value = savedRepo;
-            }
-        }
-
-        function hideGitHubModal() {
-            document.getElementById('githubModal').classList.remove('show');
-        }
-
-        function saveGitHubSettings() {
-            const token = document.getElementById('githubToken').value;
-            const repo = document.getElementById('githubRepo').value;
-            
-            if (!token || !repo) {
-                alert('Please enter both token and repository');
-                return;
-            }
-            
-            localStorage.setItem('githubToken', token);
-            localStorage.setItem('githubRepo', repo);
-            
-            showSuccessMessage('GitHub settings saved successfully!');
-            setTimeout(hideGitHubModal, 1500);
-        }
-
-        function syncWithGitHub() {
-            const token = localStorage.getItem('githubToken');
-            const repo = localStorage.getItem('githubRepo');
-            
-            if (!token || !repo) {
-                alert('Please configure GitHub settings first');
-                return;
-            }
-            
-            // Show sync in progress
-            const syncStatus = document.getElementById('syncStatus');
-            syncStatus.style.display = 'block';
-            syncStatus.className = 'sync-status sync-syncing';
-            syncStatus.textContent = 'Syncing with GitHub...';
-            
-            // Simulate sync process
-            setTimeout(() => {
-                syncStatus.className = 'sync-status sync-success';
-                syncStatus.textContent = 'Data synced with GitHub successfully!';
-                
-                setTimeout(() => {
-                    syncStatus.style.display = 'none';
-                }, 3000);
-            }, 2000);
-        }
-
-        function showSuccessMessage(message) {
-            const syncStatus = document.getElementById('syncStatus');
-            syncStatus.style.display = 'block';
-            syncStatus.className = 'sync-status sync-success';
-            syncStatus.textContent = message;
-            
-            setTimeout(() => {
-                syncStatus.style.display = 'none';
-            }, 3000);
-        }
-
-        // Close settings menu when clicking outside
+        // Event Listeners
         document.addEventListener('click', function(e) {
             const dropdown = document.querySelector('.settings-dropdown');
             if (dropdown && !dropdown.contains(e.target)) {
@@ -2500,17 +2482,21 @@
             }
         });
 
-        document.getElementById('githubModal').addEventListener('click', function(e) {
-            if (e.target === this) {
-                hideGitHubModal();
+        // Form submission on Enter key
+        document.getElementById('loginEmail').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                signIn();
             }
         });
 
-        // Initialize application
-        document.addEventListener('DOMContentLoaded', function() {
-            // Start with login screen
-            document.getElementById('loginOverlay').style.display = 'flex';
+        document.getElementById('loginPassword').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                signIn();
+            }
         });
+
+        // Initialize connection status
+        updateConnectionStatus();
     </script>
 </body>
 </html>
